@@ -38,6 +38,16 @@
             .mobile-frame { width: 100%; height: 100vh; border: none; border-radius: 0; max-height: none; }
         }
 
+        /* UTILS */
+        .hidden { display: none !important; }
+
+        /* NOTIFICATION DOTS */
+        .red-dot {
+            width: 12px; height: 12px; background: #FF4757; border: 2px solid white; border-radius: 50%;
+            position: absolute; top: 0; right: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.3); z-index: 10;
+        }
+        .badge-new { background: #FF4757; color: white; font-size: 10px; font-weight: 800; padding: 4px 8px; border-radius: 10px; margin-left: auto; }
+
         /* LOGIN SCREEN */
         #screen-login {
             background: linear-gradient(135deg, #6C5CE7 0%, #a29bfe 100%);
@@ -61,7 +71,6 @@
 
         /* APP SCREENS */
         .screen { flex: 1; display: flex; flex-direction: column; background: #F4F7FE; overflow-y: auto; }
-        .hidden { display: none !important; }
         
         .top-bar { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; background: white; border-radius: 0 0 30px 30px; box-shadow: 0 5px 20px rgba(0,0,0,0.03); z-index: 10; }
         .page-title { font-size: 20px; color: var(--deep-purple); font-weight: 700; }
@@ -72,9 +81,6 @@
         .bubble-card:active { transform: translateY(2px); box-shadow: 0 2px 0 #E0E6F0; }
         
         .b-avatar { width: 45px; height: 45px; background: #FFD166; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 22px; color: white; margin-right: 15px; position: relative; }
-        .red-dot { width: 14px; height: 14px; background: #FF4757; border: 2px solid white; border-radius: 50%; position: absolute; top: -5px; right: -5px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        .badge-new { background: #FF4757; color: white; font-size: 10px; font-weight: 800; padding: 4px 8px; border-radius: 10px; margin-left: auto; }
-
         .b-info { flex: 1; }
         .b-name { font-weight: 700; color: var(--deep-purple); font-size: 16px; }
         .b-status { font-size: 13px; color: #888; font-weight: 600; }
@@ -103,10 +109,7 @@
         .status-box:active { transform: scale(0.98); }
 
         /* SCANNING ANIMATION */
-        .scan-line {
-            width: 100%; height: 4px; background: #00F2FE; position: absolute; top: 20%; 
-            animation: scan 2s infinite alternate; box-shadow: 0 0 10px #00F2FE;
-        }
+        .scan-line { width: 100%; height: 4px; background: #00F2FE; position: absolute; top: 20%; animation: scan 2s infinite alternate; box-shadow: 0 0 10px #00F2FE; }
         @keyframes scan { from { top: 10%; } to { top: 90%; } }
     </style>
 </head>
@@ -163,18 +166,12 @@
             <h4 style="margin: 0 0 10px 5px; color:#a4b0be; text-transform:uppercase; font-size:12px;">Controls</h4>
             <div class="bubble-card" onclick="app.openSettings()">
                 <div class="b-avatar" style="background:#fdcb6e;"><i class="fas fa-moon"></i></div>
-                <div class="b-info">
-                    <div class="b-name">Curfew</div>
-                    <div class="b-status">Sleep schedules</div>
-                </div>
+                <div class="b-info"><div class="b-name">Curfew</div><div class="b-status">Sleep schedules</div></div>
                 <i class="fas fa-chevron-right chevron"></i>
             </div>
             <div class="bubble-card" onclick="app.openParentChat()">
                 <div class="b-avatar" style="background:var(--primary);"><i class="fas fa-comments"></i></div>
-                <div class="b-info">
-                    <div class="b-name">Messages</div>
-                    <div class="b-status">Chat with child</div>
-                </div>
+                <div class="b-info"><div class="b-name">Messages</div><div class="b-status">Chat with child</div></div>
                 <div id="msg-badge" class="badge-new hidden">NEW</div>
                 <i class="fas fa-chevron-right chevron" style="margin-left: 10px;"></i>
             </div>
@@ -191,17 +188,14 @@
         <div class="content-area">
             <div class="bubble-card" onclick="app.openChat('AI_Tutor', 'Tutor Tom')">
                 <div class="b-avatar" style="background:#a29bfe;"><i class="fas fa-robot"></i></div>
-                <div class="b-info">
-                    <div class="b-name">Tutor Tom</div>
-                    <div class="b-status" style="color:#6C5CE7; font-weight:800;">Homework Helper</div>
-                </div>
+                <div class="b-info"><div class="b-name">Tutor Tom</div><div class="b-status" style="color:#6C5CE7; font-weight:800;">Homework Helper</div></div>
             </div>
             <div class="bubble-card" onclick="app.openChat('ParentUser', 'Mom & Dad')">
-                <div class="b-avatar" style="background:#0984e3;"><i class="fas fa-user-shield"></i></div>
-                <div class="b-info">
-                    <div class="b-name">Mom & Dad</div>
-                    <div class="b-status">Family Base</div>
+                <div class="b-avatar" style="background:#0984e3;">
+                    <div id="badge-parent" class="red-dot hidden"></div>
+                    <i class="fas fa-user-shield"></i>
                 </div>
+                <div class="b-info"><div class="b-name">Mom & Dad</div><div class="b-status">Family Base</div></div>
             </div>
         </div>
         <div class="sos-btn" onclick="app.triggerSOS()">SOS</div>
@@ -252,10 +246,7 @@
         </div>
         <div class="content-area">
             <div class="bubble-card" style="cursor:default;">
-                <div class="b-info">
-                    <div class="b-name">Enable Curfew</div>
-                    <div class="b-status">Block friends at night</div>
-                </div>
+                <div class="b-info"><div class="b-name">Enable Curfew</div><div class="b-status">Block friends at night</div></div>
                 <input type="checkbox" id="curfew-toggle" style="transform: scale(1.5); accent-color: var(--primary);">
             </div>
             <h4 style="margin: 20px 0 10px 5px; color:#a4b0be; text-transform:uppercase; font-size:12px;">Schedule</h4>
@@ -275,7 +266,7 @@
     let chatHistory = [];
     let children = [];
     let selectedChildId = null;
-    let parentVerified = false; // Local state for prototype
+    let parentVerified = false;
 
     const app = {
         setRole: (role) => {
@@ -312,7 +303,7 @@
              if(isParent && currentChat) {
                 app.nav('screen-child-detail');
              } else {
-                app.nav(isParent ? 'screen-parent' : 'screen-child-home');
+                app.nav(isParent ? 'screen-child-home');
              }
         },
 
@@ -322,21 +313,17 @@
             if(name && user) socket.emit('register child', { name, username: user });
         },
 
-        // --- VERIFICATION LOGIC ---
+        // --- VERIFICATION ---
         startVerification: () => {
-            if(parentVerified) return; // Already done
+            if(parentVerified) return; 
             document.getElementById('overlay-scan').classList.remove('hidden');
-            socket.emit('verify identity'); // Tell server to start simulation
+            socket.emit('verify identity');
         },
-
         updateVerifyUI: () => {
             const box = document.getElementById('verify-box');
-            const icon = document.getElementById('verify-icon');
-            const text = document.getElementById('verify-text');
-            
             box.className = "status-box status-verified";
-            icon.className = "fas fa-check-circle";
-            text.innerText = "Identity Verified";
+            document.getElementById('verify-icon').className = "fas fa-check-circle";
+            document.getElementById('verify-text').innerText = "Identity Verified";
             document.getElementById('overlay-scan').classList.add('hidden');
         },
 
@@ -388,6 +375,10 @@
         openChat: (id, name) => {
             currentChat = id;
             document.getElementById('chat-title').innerText = name;
+            
+            // CLEAR CHILD BADGE if opening parent chat
+            if(id === 'ParentUser') document.getElementById('badge-parent').classList.add('hidden');
+
             const feed = document.getElementById('chat-feed');
             feed.innerHTML = '';
             
@@ -434,12 +425,8 @@
             const div = document.createElement('div');
             const isMe = msg.sender === currentUser;
             div.className = `msg-bubble msg ${isMe ? 'me' : 'them'}`;
-            
-            if(msg.image) {
-                div.innerHTML = `<img src="${msg.image}" class="chat-img">`;
-            } else {
-                div.innerText = msg.text;
-            }
+            if(msg.image) div.innerHTML = `<img src="${msg.image}" class="chat-img">`;
+            else div.innerText = msg.text;
             feed.appendChild(div);
             feed.scrollTop = feed.scrollHeight;
         },
@@ -509,21 +496,17 @@
     socket.on('update children list', (data) => {
         const oldChildren = children;
         children = data;
-        
         children.forEach(newChild => {
             const old = oldChildren.find(c => c.id === newChild.id);
             if(old && old.unread) newChild.unread = true;
         });
-
         app.renderChildrenList();
-        
         if(selectedChildId) {
              const currentChild = children.find(c => c.id === selectedChildId);
              if(currentChild) app.renderActivity(currentChild);
         }
     });
 
-    // Verification Success
     socket.on('verification complete', () => {
         parentVerified = true;
         app.updateVerifyUI();
@@ -533,13 +516,19 @@
     socket.on('chat message', (msg) => {
         chatHistory.push(msg);
         
+        // PARENT Notification
         if (msg.sender !== currentUser && msg.recipient === currentUser) {
             if (document.getElementById('screen-chat').classList.contains('hidden')) {
+                // If I am PARENT
                 const child = children.find(c => c.username === msg.sender);
                 if(child) {
                     child.unread = true;
                     app.renderChildrenList();
                     app.updateDetailBadge();
+                }
+                // If I am CHILD and sender is Parent
+                if(msg.sender === 'ParentUser') {
+                    document.getElementById('badge-parent').classList.remove('hidden');
                 }
             }
         }
