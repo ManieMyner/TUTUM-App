@@ -2,16 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Tutum</title>
-    <link rel="manifest" href="manifest.json">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
     
     <style>
-        /* --- 3D THEME --- */
+        /* --- THEME --- */
         :root {
             --primary: #4FACFE;
             --deep-purple: #432C7A;
@@ -25,7 +22,6 @@
             background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
             display: flex; justify-content: center; align-items: center;
             min-height: 100vh; padding: 20px; box-sizing: border-box;
-            overscroll-behavior-y: none;
         }
 
         .mobile-frame { 
@@ -112,6 +108,11 @@
         .overlay { position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:3000; display:flex; flex-direction:column; align-items:center; justify-content:center; }
         .scan-line { width: 100%; height: 4px; background: #00F2FE; position: absolute; top: 20%; animation: scan 2s infinite alternate; box-shadow: 0 0 10px #00F2FE; }
         @keyframes scan { from { top: 10%; } to { top: 90%; } }
+        
+        /* EMOJI GRID */
+        .emoji-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 15px 0; }
+        .emoji-opt { font-size: 24px; padding: 10px; background: #f0f4f8; border-radius: 10px; cursor: pointer; }
+        .emoji-opt:hover { background: #dce6f2; }
     </style>
 </head>
 <body>
@@ -142,12 +143,14 @@
             
             <div id="form-parent">
                 <div id="parent-default">
-                    <p style="color:white; font-size:13px; opacity:0.8; margin-bottom:15px;">Parent Dashboard</p>
+                    <input id="parent-user" class="slot-input" placeholder="Parent Username (Default: ParentUser)">
                     <button id="btn-login-parent" class="btn-3d" style="background: linear-gradient(to bottom, #6C5CE7, #a29bfe);" onclick="app.login()">Login</button>
                     <div class="text-link" onclick="app.toggleInviteMode()">Have an invite code?</div>
                 </div>
                 <div id="parent-invite" class="hidden">
-                    <input id="invite-code" class="slot-input" placeholder="Enter Code (e.g. FAM-1234)">
+                    <input id="invite-code" class="slot-input" placeholder="Code (e.g. FAM-1234)">
+                    <input id="invite-name" class="slot-input" placeholder="Your Real Name (e.g. Mom)">
+                    <input id="invite-user" class="slot-input" placeholder="New Username (e.g. mom_1)">
                     <button id="btn-join" class="btn-3d" style="background: linear-gradient(to bottom, #00b894, #55efc4);" onclick="app.joinFamily()">Join Family</button>
                     <div class="text-link" onclick="app.toggleInviteMode()">Back to Login</div>
                 </div>
@@ -159,27 +162,74 @@
         <div class="top-bar">
             <button class="icon-btn logout-btn" onclick="app.logout()"><i class="fas fa-sign-out-alt"></i></button>
             <div class="page-title">Family Base</div>
-            <button class="icon-btn" onclick="app.openAddChild()"><i class="fas fa-plus"></i></button>
+            <button class="icon-btn" onclick="app.openProfile()"><i class="fas fa-user-edit"></i></button>
         </div>
         <div class="content-area">
             <div id="verify-box" class="status-box status-unverified" onclick="app.startVerification()">
                 <i id="verify-icon" class="fas fa-exclamation-circle"></i><span id="verify-text">Identity Unverified (Tap to Fix)</span>
             </div>
             
-            <div class="bubble-card" onclick="app.generateInvite()">
-                <div class="b-avatar" style="background:#0984e3; color:white;"><i class="fas fa-users"></i></div>
-                <div class="b-info"><div class="b-name">Guardians</div><div class="b-status">Manage Co-Parents</div></div>
-                <i class="fas fa-chevron-right chevron"></i>
-            </div>
-
-            <div class="bubble-card" onclick="app.openChat('GuardianRoom', 'Co-Parent Chat')">
-                <div class="b-avatar" style="background:#6C5CE7; color:white;"><i class="fas fa-comments"></i></div>
-                <div class="b-info"><div class="b-name">Co-Parent Chat</div><div class="b-status">Private</div></div>
-                <i class="fas fa-chevron-right chevron"></i>
+            <div style="display:flex; gap:10px; margin-bottom:20px;">
+                <div class="bubble-card" style="flex:1; justify-content:center; flex-direction:column; text-align:center; padding:20px;" onclick="app.openAddChild()">
+                    <div class="b-avatar" style="margin:0 auto 10px; background:#4FACFE;"><i class="fas fa-child"></i></div>
+                    <div class="b-name" style="font-size:14px;">Add Child</div>
+                </div>
+                <div class="bubble-card" style="flex:1; justify-content:center; flex-direction:column; text-align:center; padding:20px;" onclick="app.generateInvite()">
+                    <div class="b-avatar" style="margin:0 auto 10px; background:#00b894;"><i class="fas fa-user-plus"></i></div>
+                    <div class="b-name" style="font-size:14px;">Invite Co-Parent</div>
+                </div>
             </div>
 
             <h4 style="margin: 20px 0 10px 5px; color:#a4b0be; text-transform:uppercase; font-size:12px;">Your Kids</h4>
             <div id="children-list"></div>
+        </div>
+    </div>
+
+    <div id="screen-child-home" class="screen hidden">
+        <div class="top-bar">
+            <button class="icon-btn logout-btn" onclick="app.logout()"><i class="fas fa-sign-out-alt"></i></button>
+            <div class="page-title">My Squad</div>
+            <button class="icon-btn" onclick="app.openProfile()"><i class="fas fa-user-edit"></i></button>
+        </div>
+        <div class="content-area">
+            <div id="my-profile-card" style="text-align:center; margin-bottom:20px;"></div>
+
+            <div class="bubble-card" onclick="app.openChat('AI_Tutor', 'Tutor Tom')">
+                <div class="b-avatar" style="background:#a29bfe;"><i class="fas fa-robot"></i></div>
+                <div class="b-info"><div class="b-name">Tutor Tom</div><div class="b-status" style="color:#6C5CE7; font-weight:800;">Homework Helper</div></div>
+            </div>
+            
+            <div id="guardians-list"></div>
+        </div>
+        <div class="sos-btn" onclick="app.triggerSOS()">SOS</div>
+    </div>
+
+    <div id="screen-profile" class="screen hidden">
+        <div class="top-bar">
+            <button class="icon-btn" onclick="app.back()"><i class="fas fa-chevron-left"></i></button>
+            <div class="page-title">Edit Profile</div>
+            <button class="icon-btn" onclick="app.saveProfile()"><i class="fas fa-check"></i></button>
+        </div>
+        <div class="content-area">
+            <div style="text-align:center; margin-bottom:20px;">
+                <div class="b-avatar" style="width:80px; height:80px; font-size:40px; margin:0 auto;" id="profile-avatar-preview">😎</div>
+            </div>
+            
+            <h4 style="color:#a4b0be; font-size:12px;">PICK AVATAR</h4>
+            <div class="emoji-grid">
+                <div class="emoji-opt" onclick="app.selectAvatar('😎')">😎</div>
+                <div class="emoji-opt" onclick="app.selectAvatar('👑')">👑</div>
+                <div class="emoji-opt" onclick="app.selectAvatar('🐱')">🐱</div>
+                <div class="emoji-opt" onclick="app.selectAvatar('⚽')">⚽</div>
+                <div class="emoji-opt" onclick="app.selectAvatar('🛡️')">🛡️</div>
+                <div class="emoji-opt" onclick="app.selectAvatar('🚀')">🚀</div>
+                <div class="emoji-opt" onclick="app.selectAvatar('🎨')">🎨</div>
+                <div class="emoji-opt" onclick="app.selectAvatar('🎮')">🎮</div>
+            </div>
+
+            <h4 style="color:#a4b0be; font-size:12px; margin-top:20px;">DETAILS</h4>
+            <input id="profile-name" class="slot-input" style="background:white; border:1px solid #eee;" placeholder="Display Name">
+            <input id="profile-bio" class="slot-input" style="background:white; border:1px solid #eee;" placeholder="Bio / Status">
         </div>
     </div>
 
@@ -190,7 +240,6 @@
             <div style="width:40px;"></div>
         </div>
         <div class="content-area">
-            <h4 style="margin: 0 0 10px 5px; color:#a4b0be; text-transform:uppercase; font-size:12px;">Controls</h4>
             <div class="bubble-card" onclick="app.openSettings()">
                 <div class="b-avatar" style="background:#fdcb6e;"><i class="fas fa-moon"></i></div>
                 <div class="b-info"><div class="b-name">Curfew</div><div class="b-status">Sleep schedules</div></div>
@@ -207,28 +256,6 @@
         </div>
     </div>
 
-    <div id="screen-child-home" class="screen hidden">
-        <div class="top-bar">
-            <button class="icon-btn logout-btn" onclick="app.logout()"><i class="fas fa-sign-out-alt"></i></button>
-            <div class="page-title">My Squad</div>
-            <button class="icon-btn" onclick="app.showQR()"><i class="fas fa-qrcode"></i></button>
-        </div>
-        <div class="content-area">
-            <div class="bubble-card" onclick="app.openChat('AI_Tutor', 'Tutor Tom')">
-                <div class="b-avatar" style="background:#a29bfe;"><i class="fas fa-robot"></i></div>
-                <div class="b-info"><div class="b-name">Tutor Tom</div><div class="b-status" style="color:#6C5CE7; font-weight:800;">Homework Helper</div></div>
-            </div>
-            <div class="bubble-card" onclick="app.openChat('ParentUser', 'Mom & Dad')">
-                <div class="b-avatar" style="background:#0984e3;">
-                    <div id="child-badge-parent" class="red-dot hidden"></div>
-                    <i class="fas fa-user-shield"></i>
-                </div>
-                <div class="b-info"><div class="b-name">Mom & Dad</div><div class="b-status">Family Base</div></div>
-            </div>
-        </div>
-        <div class="sos-btn" onclick="app.triggerSOS()">SOS</div>
-    </div>
-
     <div id="screen-chat" class="screen hidden">
         <div class="top-bar">
             <button class="icon-btn" onclick="app.back()"><i class="fas fa-chevron-left"></i></button>
@@ -241,6 +268,23 @@
             <button onclick="document.getElementById('file-upload').click()" style="width:40px; height:40px; background:#dfe6e9; border:none; border-radius:50%; color:#636e72; cursor:pointer; margin-right:5px;"><i class="fas fa-camera"></i></button>
             <input id="msg-input" class="chat-input" placeholder="Type here..." autocomplete="off">
             <button onclick="app.send()" style="width:45px; height:45px; background:#4FACFE; border:none; border-radius:50%; color:white; cursor:pointer; margin-left:10px;"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <div id="screen-settings" class="screen hidden">
+        <div class="top-bar">
+            <button class="icon-btn" onclick="app.nav('screen-child-detail')"><i class="fas fa-times"></i></button>
+            <div class="page-title">Curfew</div>
+            <button class="icon-btn" onclick="app.saveSettings()"><i class="fas fa-check"></i></button>
+        </div>
+        <div class="content-area">
+            <div class="bubble-card" style="cursor:default;">
+                <div class="b-info"><div class="b-name">Enable Curfew</div><div class="b-status">Block friends at night</div></div>
+                <input type="checkbox" id="curfew-toggle" style="transform: scale(1.5); accent-color: var(--primary);">
+            </div>
+            <h4 style="margin: 20px 0 10px 5px; color:#a4b0be; text-transform:uppercase; font-size:12px;">Schedule</h4>
+            <div class="time-box"><span>Start Time</span><input type="time" id="time-start"></div>
+            <div class="time-box" style="margin-top:10px;"><span>End Time</span><input type="time" id="time-end"></div>
         </div>
     </div>
 
@@ -274,23 +318,6 @@
         <button class="btn-3d" style="background:white; color:#FF7675; width:60%; margin-top:40px;" onclick="app.closeOverlays()">I'm Safe</button>
     </div>
 
-    <div id="screen-settings" class="screen hidden">
-        <div class="top-bar">
-            <button class="icon-btn" onclick="app.nav('screen-child-detail')"><i class="fas fa-times"></i></button>
-            <div class="page-title">Curfew</div>
-            <button class="icon-btn" onclick="app.saveSettings()"><i class="fas fa-check"></i></button>
-        </div>
-        <div class="content-area">
-            <div class="bubble-card" style="cursor:default;">
-                <div class="b-info"><div class="b-name">Enable Curfew</div><div class="b-status">Block friends at night</div></div>
-                <input type="checkbox" id="curfew-toggle" style="transform: scale(1.5); accent-color: var(--primary);">
-            </div>
-            <h4 style="margin: 20px 0 10px 5px; color:#a4b0be; text-transform:uppercase; font-size:12px;">Schedule</h4>
-            <div class="time-box"><span>Start Time</span><input type="time" id="time-start"></div>
-            <div class="time-box" style="margin-top:10px;"><span>End Time</span><input type="time" id="time-end"></div>
-        </div>
-    </div>
-
 </div>
 
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
@@ -311,6 +338,7 @@
     let guardians = [];
     let selectedChildId = null;
     let parentVerified = false;
+    let selectedAvatar = "😎";
 
     const app = {
         setRole: (role) => {
@@ -333,8 +361,10 @@
 
         joinFamily: () => {
             const code = document.getElementById('invite-code').value;
-            if(!code) return alert("Enter code");
-            socket.emit('join family', code);
+            const name = document.getElementById('invite-name').value;
+            const user = document.getElementById('invite-user').value;
+            if(!code || !name || !user) return alert("Fill all fields");
+            socket.emit('join family', { code, name, username: user });
         },
 
         login: () => {
@@ -343,8 +373,9 @@
                 if(btn) { btn.innerText = "Connecting..."; btn.disabled = true; }
 
                 if(isParent) {
-                    currentUser = "ParentUser";
-                    socket.emit('parent login'); 
+                    const parentUser = document.getElementById('parent-user').value || "ParentUser";
+                    currentUser = parentUser;
+                    socket.emit('parent login', parentUser); 
                 } else {
                     const user = document.getElementById('login-user').value;
                     if(!user) { alert("Please enter username"); app.resetBtn(); return; }
@@ -371,33 +402,57 @@
         },
 
         back: () => {
-             if(isParent && currentChat) {
-                 if(currentChat === 'GuardianRoom') app.nav('screen-parent');
-                 else app.nav('screen-child-detail');
-                 currentChat = null;
-             } else if(selectedChildId) {
-                 app.nav('screen-parent');
-                 selectedChildId = null;
-             } else {
-                 app.nav(isParent ? 'screen-parent' : 'screen-child-home');
-             }
+             if(isParent && currentChat) app.nav('screen-child-detail');
+             else app.nav(isParent ? 'screen-parent' : 'screen-child-home');
         },
 
-        // --- NEW ADD CHILD MODAL LOGIC ---
+        // --- PROFILE LOGIC ---
+        openProfile: () => {
+            // Find current user data
+            let user;
+            if(!isParent) user = children.find(c => c.username === currentUser);
+            else user = guardians.find(g => g.username === currentUser);
+
+            if(user) {
+                document.getElementById('profile-name').value = user.name;
+                document.getElementById('profile-bio').value = user.bio || "";
+                document.getElementById('profile-avatar-preview').innerText = user.avatar || "😎";
+                selectedAvatar = user.avatar || "😎";
+                app.nav('screen-profile');
+            }
+        },
+        
+        selectAvatar: (av) => {
+            selectedAvatar = av;
+            document.getElementById('profile-avatar-preview').innerText = av;
+        },
+
+        saveProfile: () => {
+            const name = document.getElementById('profile-name').value;
+            const bio = document.getElementById('profile-bio').value;
+            socket.emit('update profile', { 
+                username: currentUser, 
+                role: isParent ? 'parent' : 'child', 
+                name, bio, avatar: selectedAvatar 
+            });
+            app.back();
+        },
+
+        // --- ADD CHILD ---
         openAddChild: () => {
             document.getElementById('overlay-add-child').classList.remove('hidden');
         },
+        
         submitChild: () => {
             const name = document.getElementById('new-child-name').value;
             const user = document.getElementById('new-child-user').value;
             if(name && user) {
                 socket.emit('register child', { name, username: user });
                 app.closeOverlays();
-                // Clear inputs
                 document.getElementById('new-child-name').value = '';
                 document.getElementById('new-child-user').value = '';
             } else {
-                alert("Please fill in both fields");
+                alert("Please fill in both Name and Username.");
             }
         },
 
@@ -464,17 +519,12 @@
         openChat: (id, name) => {
             currentChat = id;
             document.getElementById('chat-title').innerText = name;
-            if(id === 'ParentUser') document.getElementById('child-badge-parent').classList.add('hidden');
             const feed = document.getElementById('chat-feed');
             feed.innerHTML = '';
             chatHistory.forEach(msg => {
-                if (id === 'GuardianRoom') {
-                    if (msg.recipient === 'GuardianRoom') app.renderMsg(msg);
-                } else {
-                    if ((msg.sender === currentUser && msg.recipient === currentChat) || 
-                        (msg.sender === currentChat && msg.recipient === currentUser)) {
-                        app.renderMsg(msg);
-                    }
+                if ((msg.sender === currentUser && msg.recipient === currentChat) || 
+                    (msg.sender === currentChat && msg.recipient === currentUser)) {
+                    app.renderMsg(msg);
                 }
             });
             app.nav('screen-chat');
@@ -568,13 +618,31 @@
                 div.innerHTML = `
                     <div class="b-avatar" style="${isSOS ? 'background:#FF4757' : 'background:#a29bfe'}">
                         ${showRedDot}
-                        <i class="fas ${isSOS ? 'fa-exclamation' : 'fa-user-astronaut'}"></i>
+                        <div style="font-size:20px;">${c.avatar || '😎'}</div>
                     </div>
                     <div class="b-info">
                         <div class="b-name">${c.name}</div>
-                        <div class="b-status" style="${isSOS ? 'color:#FF4757' : ''}">${c.status}</div>
+                        <div class="b-status" style="${isSOS ? 'color:#FF4757' : ''}">${c.bio}</div>
                     </div>
                     <i class="fas fa-chevron-right chevron"></i>
+                `;
+                list.appendChild(div);
+            });
+        },
+
+        renderGuardiansList: () => {
+            const list = document.getElementById('guardians-list');
+            if(!list) return; // Only if on child screen
+            list.innerHTML = '';
+            guardians.forEach(g => {
+                const div = document.createElement('div');
+                div.className = 'bubble-card';
+                div.onclick = () => app.openChat(g.username, g.name);
+                div.innerHTML = `
+                    <div class="b-avatar" style="background:#0984e3; color:white;">
+                        <div style="font-size:20px;">${g.avatar || '🛡️'}</div>
+                    </div>
+                    <div class="b-info"><div class="b-name">${g.name}</div><div class="b-status">${g.bio}</div></div>
                 `;
                 list.appendChild(div);
             });
@@ -590,21 +658,19 @@
     };
 
     if(socket) {
-        // --- THIS LISTENER HANDLES THE UPDATE DATA EVENT SENT BY SERVER ---
         socket.on('update data', (data) => {
             const oldChildren = children;
             children = data.children;
-            guardians = data.guardians; // Store guardian data if needed later
+            guardians = data.guardians; // Sync guardians
 
-            // Preserve local read/unread state
             children.forEach(newChild => {
                 const old = oldChildren.find(c => c.id === newChild.id);
                 if(old && old.unread) newChild.unread = true;
             });
 
             app.renderChildrenList();
-            
-            // Refresh Detail View if open
+            if(!isParent) app.renderGuardiansList(); // Show custom guardians to child
+
             if(selectedChildId) {
                  const currentChild = children.find(c => c.id === selectedChildId);
                  if(currentChild) app.renderActivity(currentChild);
@@ -634,22 +700,14 @@
                         app.renderChildrenList();
                         app.updateDetailBadge();
                     }
-                    if(msg.sender === 'ParentUser') {
-                        document.getElementById('child-badge-parent').classList.remove('hidden');
-                    }
                 }
             }
 
             if(!document.getElementById('screen-chat').classList.contains('hidden')) {
-                 // Check if message belongs in current room
-                 if(currentChat === 'GuardianRoom') {
-                     if(msg.recipient === 'GuardianRoom') app.renderMsg(msg);
-                 } else {
-                     if((msg.sender === currentUser && msg.recipient === currentChat) ||
-                       (msg.sender === currentChat && msg.recipient === currentUser)) {
-                        app.renderMsg(msg);
-                    }
-                 }
+                 if((msg.sender === currentUser && msg.recipient === currentChat) ||
+                   (msg.sender === currentChat && msg.recipient === currentUser)) {
+                    app.renderMsg(msg);
+                }
             }
         });
 
@@ -660,6 +718,7 @@
                 socket.emit('get data');
             } else {
                 app.nav('screen-child-home');
+                socket.emit('get data'); // Get guardian list
             }
             app.resetBtn();
         });
