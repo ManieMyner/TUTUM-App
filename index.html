@@ -19,16 +19,33 @@
             --text-light: #636E72;
         }
 
+        /* BODY: Now allows scrolling on desktop */
         body { 
             margin: 0; font-family: 'Fredoka', sans-serif; 
             background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
-            display: flex; justify-content: center; height: 100vh; overflow: hidden; 
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; 
+            padding: 20px; /* Breathing room on desktop */
+            box-sizing: border-box;
+            overflow-y: auto; /* ENABLE SCROLLING */
         }
 
+        /* MOBILE FRAME: Fixed height on desktop */
         .mobile-frame { 
-            width: 100%; max-width: 414px; height: 100%; position: relative; 
+            width: 100%; max-width: 414px; 
+            height: 850px; /* Fixed height so it fits content */
+            position: relative; 
             display: flex; flex-direction: column; overflow: hidden;
-            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            border-radius: 40px; /* Phone corners */
+            border: 8px solid rgba(255,255,255,0.3); /* Glass Bezel */
+            background: #F4F7FE;
+        }
+
+        /* MEDIA QUERY: If on a REAL PHONE, revert to full screen */
+        @media (max-width: 500px) {
+            body { padding: 0; align-items: flex-start; height: 100vh; overflow: hidden; }
+            .mobile-frame { height: 100%; border-radius: 0; border: none; }
         }
 
         /* LOGIN SCREEN */
@@ -196,204 +213,4 @@
         </div>
     </div>
 
-    <div id="overlay-sos" class="hidden" style="position:absolute; top:0; left:0; width:100%; height:100%; background:#FF7675; z-index:200; display:flex; flex-direction:column; align-items:center; justify-content:center; color:white; text-align:center;">
-        <i class="fas fa-exclamation-circle" style="font-size:80px; margin-bottom:20px;"></i>
-        <h1>ALERT SENT!</h1>
-        <button class="btn-3d" style="background:white; color:#FF7675; width:60%; margin-top:40px;" onclick="app.closeOverlays()">I'm Safe</button>
-    </div>
-
-</div>
-
-<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-<script>
-    const socket = io();
-    let currentUser = "";
-    let isParent = true;
-    let currentChat = "";
-    let chatHistory = [];
-    let children = []; // FIXED: Renamed to match usage
-    let selectedChildId = null; // FIXED: Added to track which child parent is viewing
-
-    const app = {
-        setRole: (role) => {
-            isParent = (role === 'parent');
-            document.getElementById('role-parent').className = isParent ? 'role-opt active' : 'role-opt';
-            document.getElementById('role-child').className = !isParent ? 'role-opt active' : 'role-opt';
-            if(isParent) {
-                document.getElementById('form-parent').classList.remove('hidden');
-                document.getElementById('form-child').classList.add('hidden');
-            } else {
-                document.getElementById('form-parent').classList.add('hidden');
-                document.getElementById('form-child').classList.remove('hidden');
-            }
-        },
-
-        login: () => {
-            if(isParent) {
-                currentUser = "ParentUser";
-                app.nav('screen-parent');
-                socket.emit('get children');
-            } else {
-                const user = document.getElementById('login-user').value;
-                if(!user) return alert("Username needed!");
-                socket.emit('child login', user);
-            }
-        },
-
-        nav: (id) => {
-            document.querySelectorAll('.screen').forEach(e => e.classList.add('hidden'));
-            document.getElementById(id).classList.remove('hidden');
-        },
-
-        back: () => {
-             // If I am parent, go back to child detail. If child, go home.
-             if(isParent && currentChat) {
-                app.nav('screen-child-detail');
-             } else {
-                app.nav(isParent ? 'screen-parent' : 'screen-child-home');
-             }
-        },
-
-        addChild: () => {
-            const name = prompt("Name:");
-            const user = prompt("Username:");
-            if(name && user) socket.emit('register child', { name, username: user });
-        },
-
-        // --- PARENT SPECIFIC FIXES ---
-        openChildDetail: (id) => {
-            selectedChildId = id;
-            const child = children.find(c => c.id === id);
-            document.getElementById('detail-title').innerText = child.name;
-            app.renderActivity(child);
-            app.nav('screen-child-detail');
-        },
-
-        openParentChat: () => {
-            const child = children.find(c => c.id === selectedChildId);
-            if(child) app.openChat(child.username, child.name);
-        },
-
-        renderActivity: (child) => {
-             const list = document.getElementById('activity-log');
-             list.innerHTML = '';
-             if(child.activityLog.length === 0) list.innerHTML = '<div style="color:#aaa; text-align:center;">No activity</div>';
-             
-             child.activityLog.forEach(log => {
-                const div = document.createElement('div');
-                div.className = 'bubble-card';
-                div.innerHTML = `
-                    <div class="b-avatar" style="${log.type==='alert'?'background:#FF4757':'background:#ccc'}"><i class="fas fa-info"></i></div>
-                    <div class="b-info"><div class="b-name">${log.user}</div><div class="b-status">${log.text}</div></div>
-                `;
-                list.appendChild(div);
-             });
-        },
-
-        // --- CHAT ---
-        openChat: (id, name) => {
-            currentChat = id;
-            document.getElementById('chat-title').innerText = name;
-            const feed = document.getElementById('chat-feed');
-            feed.innerHTML = '';
-            
-            chatHistory.forEach(msg => {
-                const isMe = (msg.sender === currentUser);
-                const isThem = (msg.sender === currentChat);
-                // Filter logic: Show if it involves both of us
-                if ((msg.sender === currentUser && msg.recipient === currentChat) || 
-                    (msg.sender === currentChat && msg.recipient === currentUser)) {
-                    app.renderMsg(msg);
-                }
-            });
-            app.nav('screen-chat');
-        },
-
-        send: () => {
-            const txt = document.getElementById('msg-input').value;
-            if(txt) {
-                socket.emit('chat message', { sender: currentUser, recipient: currentChat, text: txt });
-                document.getElementById('msg-input').value = '';
-            }
-        },
-
-        renderMsg: (msg) => {
-            const feed = document.getElementById('chat-feed');
-            const div = document.createElement('div');
-            const isMe = msg.sender === currentUser;
-            div.className = `msg-bubble msg ${isMe ? 'me' : 'them'}`;
-            div.innerText = msg.text;
-            feed.appendChild(div);
-            feed.scrollTop = feed.scrollHeight;
-        },
-
-        // --- EXTRAS ---
-        showQR: () => {
-            document.getElementById('qr-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${currentUser}`;
-            document.getElementById('qr-name').innerText = "@"+currentUser;
-            document.getElementById('overlay-qr').classList.remove('hidden');
-        },
-
-        triggerSOS: () => {
-            document.getElementById('overlay-sos').classList.remove('hidden');
-            socket.emit('sos signal', currentUser);
-        },
-
-        closeOverlays: () => {
-            document.getElementById('overlay-qr').classList.add('hidden');
-            document.getElementById('overlay-sos').classList.add('hidden');
-        }
-    };
-
-    // SOCKETS
-    socket.on('update children list', (data) => {
-        children = data; // FIXED: Variable matches now
-        const list = document.getElementById('children-list');
-        list.innerHTML = '';
-        children.forEach(c => {
-            const div = document.createElement('div');
-            div.className = 'bubble-card';
-            div.onclick = () => app.openChildDetail(c.id); // FIXED: Calls correct function
-            
-            const isSOS = c.status && c.status.includes("SOS");
-            
-            div.innerHTML = `
-                <div class="b-avatar" style="${isSOS ? 'background:#FF4757' : 'background:#a29bfe'}">
-                    <i class="fas ${isSOS ? 'fa-exclamation' : 'fa-user-astronaut'}"></i>
-                </div>
-                <div class="b-info">
-                    <div class="b-name">${c.name}</div>
-                    <div class="b-status" style="${isSOS ? 'color:#FF4757' : ''}">${c.status}</div>
-                </div>
-                <i class="fas fa-chevron-right chevron"></i>
-            `;
-            list.appendChild(div);
-        });
-        // Refresh detail if open
-        if(selectedChildId) {
-             const currentChild = children.find(c => c.id === selectedChildId);
-             if(currentChild) app.renderActivity(currentChild);
-        }
-    });
-
-    socket.on('chat message', (msg) => {
-        chatHistory.push(msg);
-        if(!document.getElementById('screen-chat').classList.contains('hidden')) {
-             if((msg.sender === currentUser && msg.recipient === currentChat) ||
-               (msg.sender === currentChat && msg.recipient === currentUser)) {
-                app.renderMsg(msg);
-            }
-        }
-    });
-
-    socket.on('login success', (user) => {
-        currentUser = user.username;
-        app.nav('screen-child-home');
-    });
-
-    socket.on('toast', (t) => alert(t));
-    socket.on('login failed', (t) => alert(t));
-
-</script>
-</body>
-</html>
+    <div id="overlay-sos" class="hidden" style="position:absolute; top:0; left:0; width:100%; height:100%; background:#FF7675; z-index:200; display:flex;
