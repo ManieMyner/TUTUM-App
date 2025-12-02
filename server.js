@@ -23,6 +23,10 @@ let children = [
     }
 ];
 
+// --- SETTINGS ---
+const bannedWords = ["stupid", "hate", "ugly", "idiot", "kill"];
+
+// --- LOGIC ---
 io.on('connection', (socket) => {
     
     socket.on('get children', () => {
@@ -66,14 +70,10 @@ io.on('connection', (socket) => {
         }
     });
 
-    // --- SOS LOGIC (UPDATED) ---
     socket.on('sos signal', (username) => {
         const child = children.find(c => c.username === username);
         if(child) {
-            // 1. Update Status
             child.status = "🚨 SOS ALERT! 🚨";
-            
-            // 2. Log it
             child.activityLog.unshift({
                 id: "log_" + Date.now(),
                 type: "alert",
@@ -81,43 +81,46 @@ io.on('connection', (socket) => {
                 text: "Triggered the Panic Button",
                 time: "Just now"
             });
-            
-            // 3. SEND CHAT MESSAGE (Fixes missing message)
             io.emit('chat message', { 
                 sender: username, 
                 recipient: "ParentUser", 
                 text: "🚨 SOS ALERT TRIGGERED 🚨" 
             });
-
-            // 4. Update Everyone
             io.emit('update children list', children);
             io.emit('toast', `SOS ALERT from ${child.name}!`);
         }
     });
 
+    // --- CHAT LOGIC (UPDATED FOR IMAGES) ---
     socket.on('chat message', (msg) => {
+        
+        // 1. If it has text, check for bad words
+        if (msg.text) {
+            let isBad = false;
+            for (let word of bannedWords) {
+                if (msg.text.toLowerCase().includes(word)) {
+                    isBad = true;
+                    break;
+                }
+            }
+            if (isBad) {
+                socket.emit('error message', "Message blocked: Language.");
+                return; // Stop here
+            }
+        }
+
+        // 2. If safe (or just an image), send it
         io.emit('chat message', msg);
     });
 
     socket.on('flag user', (data) => socket.emit('toast', `Flag sent to ${data.targetUser}'s parents.`));
+    
     socket.on('block user', (data) => {
         const child = children.find(c => c.id === data.childId);
         if (child) {
             child.activityLog = child.activityLog.filter(log => log.id !== data.logId);
             socket.emit('update children list', children);
         }
-    });
-    
-    socket.on('simulate bully', () => {
-        const child = children[0];
-        child.activityLog.unshift({
-            id: "log_" + Date.now(),
-            type: "alert",
-            user: "random_bully",
-            text: "sent harmful message",
-            time: "Just now"
-        });
-        io.emit('update children list', children);
     });
 });
 
