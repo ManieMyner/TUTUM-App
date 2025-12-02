@@ -23,20 +23,36 @@ let children = [
     }
 ];
 
-// --- SETTINGS ---
-const bannedWords = ["stupid", "hate", "ugly", "idiot", "kill"];
+// Active Invite Codes (e.g., ["FAM-1234"])
+let activeInvites = [];
 
 // --- LOGIC ---
 io.on('connection', (socket) => {
     
-    // 1. PARENT VERIFICATION (NEW)
-    socket.on('verify identity', () => {
-        // Simulate a 3-second API call to an ID provider
-        setTimeout(() => {
-            socket.emit('verification complete');
-        }, 3000);
+    // 1. GENERATE INVITE (Parent A)
+    socket.on('generate invite', () => {
+        const code = "FAM-" + Math.floor(1000 + Math.random() * 9000);
+        activeInvites.push(code);
+        socket.emit('invite code', code);
     });
 
+    // 2. JOIN FAMILY (Parent B)
+    socket.on('join family', (code) => {
+        if (activeInvites.includes(code)) {
+            // Success! Link them to the existing family data
+            socket.emit('login success', { username: "Co-Parent", role: "parent" });
+        } else {
+            socket.emit('login failed', "Invalid or expired code.");
+        }
+    });
+
+    // 3. STANDARD PARENT LOGIN
+    socket.on('parent login', () => {
+        // In a real app, check password. Here, just let them in.
+        socket.emit('login success', { username: "Admin Parent", role: "parent" });
+    });
+
+    // --- CHILD & DATA LOGIC ---
     socket.on('get children', () => {
         socket.emit('update children list', children);
     });
@@ -72,7 +88,7 @@ io.on('connection', (socket) => {
         if (child) {
             child.status = "Online";
             io.emit('update children list', children);
-            socket.emit('login success', child);
+            socket.emit('login success', { username: child.username, role: "child" });
         } else {
             socket.emit('login failed', "Username not found.");
         }
@@ -99,63 +115,31 @@ io.on('connection', (socket) => {
         }
     });
 
-    // --- CHAT LOGIC ---
     socket.on('chat message', (msg) => {
-        if (msg.text) {
-            let isBad = false;
-            for (let word of bannedWords) {
-                if (msg.text.toLowerCase().includes(word)) {
-                    isBad = true;
-                    break;
-                }
-            }
-            if (isBad) {
-                socket.emit('error message', "Message blocked: Language.");
-                return; 
-            }
-        }
         io.emit('chat message', msg);
     });
 
-    // --- AI TUTOR LOGIC ---
+    // AI Tutor
     socket.on('tutor message', (msg) => {
         socket.emit('chat message', { sender: msg.sender, recipient: 'AI_Tutor', text: msg.text });
-
         setTimeout(() => {
             const lower = msg.text.toLowerCase();
-            let reply = "";
-
+            let reply = "Hello! I am Tutor Tom.";
             if (/[0-9]/.test(lower) && /[\+\-\*x\/]/.test(lower)) {
                 try {
                     let cleanMath = lower.replace(/[^0-9\+\-\*\/\.x]/g, '').replace(/x/g, '*');
                     let result = eval(cleanMath); 
                     reply = `The answer is ${result}.`;
-                } catch (e) {
-                    reply = "I couldn't calculate that. Try '5 + 5'.";
-                }
+                } catch (e) {}
+            } else if (lower.includes("math") || lower.includes("science")) {
+                reply = "I can help with that subject.";
             }
-            else if (lower.includes("math") || lower.includes("science") || lower.includes("history")) {
-                reply = "I can help with that! What's the question?";
-            } 
-            else if (lower.includes("game") || lower.includes("movie") || lower.includes("party")) {
-                reply = "I am strictly a Homework Tutor. Let's focus on school.";
-            } 
-            else {
-                reply = "Hello! I am Tutor Tom. Ask me a math question.";
-            }
-
             socket.emit('chat message', { sender: 'AI_Tutor', recipient: msg.sender, text: reply });
         }, 800);
     });
 
-    socket.on('flag user', (data) => socket.emit('toast', `Flag sent to ${data.targetUser}'s parents.`));
-    
-    socket.on('block user', (data) => {
-        const child = children.find(c => c.id === data.childId);
-        if (child) {
-            child.activityLog = child.activityLog.filter(log => log.id !== data.logId);
-            socket.emit('update children list', children);
-        }
+    socket.on('verify identity', () => {
+        setTimeout(() => { socket.emit('verification complete'); }, 3000);
     });
 });
 
