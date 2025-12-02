@@ -11,8 +11,6 @@ app.get('/', (req, res) => {
 });
 
 // --- DATABASE ---
-// Note: To make users permanent, we'd normally use a file save system.
-// For now, we rely on RAM.
 let children = [
     {
         id: "child_default",
@@ -31,6 +29,14 @@ const bannedWords = ["stupid", "hate", "ugly", "idiot", "kill"];
 // --- LOGIC ---
 io.on('connection', (socket) => {
     
+    // 1. PARENT VERIFICATION (NEW)
+    socket.on('verify identity', () => {
+        // Simulate a 3-second API call to an ID provider
+        setTimeout(() => {
+            socket.emit('verification complete');
+        }, 3000);
+    });
+
     socket.on('get children', () => {
         socket.emit('update children list', children);
     });
@@ -93,7 +99,7 @@ io.on('connection', (socket) => {
         }
     });
 
-    // --- STANDARD CHAT ---
+    // --- CHAT LOGIC ---
     socket.on('chat message', (msg) => {
         if (msg.text) {
             let isBad = false;
@@ -111,7 +117,7 @@ io.on('connection', (socket) => {
         io.emit('chat message', msg);
     });
 
-    // --- AI TUTOR LOGIC (UPGRADED) ---
+    // --- AI TUTOR LOGIC ---
     socket.on('tutor message', (msg) => {
         socket.emit('chat message', { sender: msg.sender, recipient: 'AI_Tutor', text: msg.text });
 
@@ -119,37 +125,27 @@ io.on('connection', (socket) => {
             const lower = msg.text.toLowerCase();
             let reply = "";
 
-            // 1. MATH SOLVER LOGIC
-            // Checks if string contains numbers and math operators (+ - * x /)
             if (/[0-9]/.test(lower) && /[\+\-\*x\/]/.test(lower)) {
                 try {
-                    // Safety: Remove anything that isn't a number or math symbol
-                    // Also replace 'x' with '*' so the computer understands
                     let cleanMath = lower.replace(/[^0-9\+\-\*\/\.x]/g, '').replace(/x/g, '*');
-                    
-                    // Calculate
                     let result = eval(cleanMath); 
-                    
-                    reply = `The answer is ${result}. Do you need help showing the steps?`;
+                    reply = `The answer is ${result}.`;
                 } catch (e) {
-                    reply = "I see a math problem, but I couldn't calculate it. Try writing it simply, like '5 + 5'.";
+                    reply = "I couldn't calculate that. Try '5 + 5'.";
                 }
             }
-            // 2. HOMEWORK KEYWORDS
             else if (lower.includes("math") || lower.includes("science") || lower.includes("history")) {
-                reply = "I can help with that subject! Send me the equation or question.";
+                reply = "I can help with that! What's the question?";
             } 
-            // 3. GUARDRAILS
             else if (lower.includes("game") || lower.includes("movie") || lower.includes("party")) {
-                reply = "I am strictly a Homework Tutor. Let's focus on your studies.";
+                reply = "I am strictly a Homework Tutor. Let's focus on school.";
             } 
-            // 4. GREETINGS
             else {
-                reply = "Hello! I am Tutor Tom. Send me a math problem like '10 x 10' or ask a science question.";
+                reply = "Hello! I am Tutor Tom. Ask me a math question.";
             }
 
             socket.emit('chat message', { sender: 'AI_Tutor', recipient: msg.sender, text: reply });
-        }, 800); // Faster reply time
+        }, 800);
     });
 
     socket.on('flag user', (data) => socket.emit('toast', `Flag sent to ${data.targetUser}'s parents.`));
