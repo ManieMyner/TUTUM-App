@@ -38,16 +38,16 @@
             .mobile-frame { width: 100%; height: 100vh; border: none; border-radius: 0; max-height: none; }
         }
 
+        /* UTILS */
+        .hidden { display: none !important; }
+
+        /* NOTIFICATION DOTS */
+        .red-dot { width: 12px; height: 12px; background: #FF4757; border: 2px solid white; border-radius: 50%; position: absolute; top: 0; right: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.3); z-index: 10; }
+        .badge-new { background: #FF4757; color: white; font-size: 10px; font-weight: 800; padding: 4px 8px; border-radius: 10px; margin-left: auto; }
+
         /* LOGIN SCREEN */
-        #screen-login {
-            background: linear-gradient(135deg, #6C5CE7 0%, #a29bfe 100%);
-            justify-content: center; align-items: center;
-        }
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            border: 2px solid var(--glass-border); border-radius: 30px; padding: 30px 20px; width: 80%; text-align: center;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.1); animation: float 6s ease-in-out infinite;
-        }
+        #screen-login { background: linear-gradient(135deg, #6C5CE7 0%, #a29bfe 100%); justify-content: center; align-items: center; }
+        .glass-panel { background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 2px solid var(--glass-border); border-radius: 30px; padding: 30px 20px; width: 80%; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.1); animation: float 6s ease-in-out infinite; }
         @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
 
         h1.logo-text { font-size: 48px; color: white; text-shadow: 0 4px 10px rgba(0,0,0,0.2); margin: 0 0 10px 0; }
@@ -61,7 +61,6 @@
 
         /* APP SCREENS */
         .screen { flex: 1; display: flex; flex-direction: column; background: #F4F7FE; overflow-y: auto; }
-        .hidden { display: none !important; }
         
         .top-bar { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; background: white; border-radius: 0 0 30px 30px; box-shadow: 0 5px 20px rgba(0,0,0,0.03); z-index: 10; }
         .page-title { font-size: 20px; color: var(--deep-purple); font-weight: 700; }
@@ -72,53 +71,37 @@
         .bubble-card:active { transform: translateY(2px); box-shadow: 0 2px 0 #E0E6F0; }
         
         .b-avatar { width: 45px; height: 45px; background: #FFD166; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 22px; color: white; margin-right: 15px; position: relative; }
-        
-        /* NOTIFICATION DOTS */
-        .red-dot { width: 14px; height: 14px; background: #FF4757; border: 2px solid white; border-radius: 50%; position: absolute; top: -5px; right: -5px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 20; }
-        .badge-new { background: #FF4757; color: white; font-size: 10px; font-weight: 800; padding: 4px 8px; border-radius: 10px; margin-left: auto; }
-
-        /* IN-APP NOTIFICATION BANNER */
-        .notify-banner {
-            position: absolute; top: -80px; left: 20px; right: 20px;
-            background: rgba(255,255,255,0.95); backdrop-filter: blur(10px);
-            padding: 15px; border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-            display: flex; align-items: center; gap: 15px;
-            transition: top 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-            z-index: 1000;
-            border: 1px solid rgba(0,0,0,0.05);
-        }
-        .notify-banner.show { top: 20px; }
-        .notify-icon { width: 40px; height: 40px; background: #E3FCEF; border-radius: 12px; color: #00B894; display: flex; align-items: center; justify-content: center; font-size: 20px; }
-        .notify-content div:first-child { font-weight: 700; font-size: 14px; color: var(--text-dark); }
-        .notify-content div:last-child { font-size: 12px; color: var(--text-light); }
-
         .b-info { flex: 1; }
         .b-name { font-weight: 700; color: var(--deep-purple); font-size: 16px; }
         .b-status { font-size: 13px; color: #888; font-weight: 600; }
 
-        .sos-btn { position: absolute; bottom: 25px; right: 20px; width: 65px; height: 65px; background: #FF4757; border-bottom: 5px solid #C41E3A; border-radius: 22px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 900; font-size: 16px; box-shadow: 0 10px 20px rgba(255, 71, 87, 0.3); z-index: 50; cursor: pointer; }
-        .sos-btn:active { transform: translateY(4px); border-bottom: 2px solid #C41E3A; }
+        /* NOTIFICATION BANNER */
+        .notify-banner {
+            position: absolute; top: -80px; left: 20px; right: 20px;
+            background: rgba(255,255,255,0.95); backdrop-filter: blur(10px);
+            padding: 15px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            display: flex; align-items: center; gap: 15px; transition: top 0.5s; z-index: 1000;
+        }
+        .notify-banner.show { top: 20px; }
+        .notify-icon { width: 40px; height: 40px; background: #E3FCEF; border-radius: 12px; color: #00B894; display: flex; align-items: center; justify-content: center; font-size: 20px; }
 
+        /* CHAT */
         .chat-feed { flex: 1; padding: 20px; overflow-y: scroll; display: flex; flex-direction: column; gap: 15px; }
         .msg-bubble { max-width: 75%; padding: 12px 16px; border-radius: 20px; font-weight: 600; font-size: 16px; line-height: 1.4; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .msg.me { background: #4FACFE; color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
         .msg.them { background: white; color: var(--text-dark); align-self: flex-start; border-bottom-left-radius: 4px; }
         .chat-img { width: 100%; border-radius: 12px; margin-top: 5px; }
-
         .input-bar { background: white; padding: 15px; border-top: 1px solid #E0E6F0; display: flex; gap: 10px; align-items: center; }
         .chat-input { flex: 1; padding: 12px 20px; border-radius: 30px; border: 2px solid #E0E6F0; font-size: 19px; font-family: 'Fredoka'; font-weight: 600; outline: none; }
-        .chat-input:focus { border-color: #4FACFE; }
 
-        .setting-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .time-box { background: #F0F4F8; padding: 10px; border-radius: 15px; display: flex; align-items: center; gap: 10px; font-weight: bold; color: var(--text-light); }
-        input[type="time"] { border: none; background: transparent; font-family: 'Fredoka'; font-weight: bold; font-size: 16px; color: var(--deep-purple); }
-
+        .sos-btn { position: absolute; bottom: 25px; right: 20px; width: 65px; height: 65px; background: #FF4757; border-bottom: 5px solid #C41E3A; border-radius: 22px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 900; font-size: 16px; box-shadow: 0 10px 20px rgba(255, 71, 87, 0.3); z-index: 50; cursor: pointer; }
+        
         .status-box { padding:15px; border-radius:15px; font-weight:700; font-size:14px; margin-bottom:20px; display:flex; align-items:center; gap:10px; cursor: pointer; transition: 0.1s; }
         .status-unverified { background:#FEE2E2; color:#DC2626; border: 1px solid #DC2626; }
         .status-verified { background:#E3FCEF; color:#00B894; border: 1px solid #00B894; cursor: default; }
-        .status-box:active { transform: scale(0.98); }
 
+        /* OVERLAYS */
+        .overlay { position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:500; display:flex; flex-direction:column; align-items:center; justify-content:center; }
         .scan-line { width: 100%; height: 4px; background: #00F2FE; position: absolute; top: 20%; animation: scan 2s infinite alternate; box-shadow: 0 0 10px #00F2FE; }
         @keyframes scan { from { top: 10%; } to { top: 90%; } }
     </style>
@@ -130,8 +113,8 @@
     <div id="notify-banner" class="notify-banner">
         <div class="notify-icon"><i class="fas fa-comment-dots"></i></div>
         <div class="notify-content">
-            <div id="notify-title">New Message</div>
-            <div id="notify-msg">Sent a photo</div>
+            <div id="notify-title" style="font-weight:700; font-size:14px;">New Message</div>
+            <div id="notify-msg" style="font-size:12px; color:#636E72;">Sent a photo</div>
         </div>
     </div>
 
@@ -139,17 +122,14 @@
         <div class="glass-panel">
             <h1 class="logo-text">Tutum</h1>
             <p style="color:#FFF; font-size:14px; margin-bottom:30px; font-weight:600; opacity:0.9;">Your Squad, Your Space.</p>
-
             <div class="role-pill">
                 <div id="role-parent" class="role-opt active" onclick="app.setRole('parent')">Parent</div>
                 <div id="role-child" class="role-opt" onclick="app.setRole('child')">Child</div>
             </div>
-
             <div id="form-child" class="hidden">
                 <input id="login-user" class="slot-input" placeholder="Username (e.g. teen_user)">
                 <button class="btn-3d" onclick="app.login()">Play</button>
             </div>
-
             <div id="form-parent">
                 <p style="color:white; font-size:13px; opacity:0.8; margin-bottom:15px;">Parent Dashboard</p>
                 <button class="btn-3d" style="background: linear-gradient(to bottom, #6C5CE7, #a29bfe);" onclick="app.login()">Login</button>
@@ -164,10 +144,16 @@
         </div>
         <div class="content-area">
             <div id="verify-box" class="status-box status-unverified" onclick="app.startVerification()">
-                <i id="verify-icon" class="fas fa-exclamation-circle"></i> 
-                <span id="verify-text">Identity Unverified (Tap to Fix)</span>
+                <i id="verify-icon" class="fas fa-exclamation-circle"></i><span id="verify-text">Identity Unverified</span>
             </div>
-            <h4 style="margin: 0 0 10px 5px; color:#a4b0be; text-transform:uppercase; font-size:12px;">Your Kids</h4>
+            
+            <div class="bubble-card" onclick="app.openGuardians()">
+                <div class="b-avatar" style="background:#0984e3; color:white;"><i class="fas fa-users"></i></div>
+                <div class="b-info"><div class="b-name">Guardians</div><div class="b-status">Manage Co-Parents</div></div>
+                <i class="fas fa-chevron-right chevron"></i>
+            </div>
+
+            <h4 style="margin: 20px 0 10px 5px; color:#a4b0be; text-transform:uppercase; font-size:12px;">Your Kids</h4>
             <div id="children-list"></div>
         </div>
     </div>
@@ -232,26 +218,26 @@
         </div>
     </div>
 
-    <div id="overlay-qr" class="hidden" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(45, 52, 54, 0.9); z-index:100; display:flex; flex-direction:column; align-items:center; justify-content:center;">
-        <div style="background:white; padding:30px; border-radius:30px; text-align:center;">
-            <img id="qr-img" src="" width="180">
-            <h2 id="qr-name">@user</h2>
-            <button class="btn-3d" style="margin-top:20px;" onclick="app.closeOverlays()">Close</button>
+    <div id="screen-guardians" class="screen hidden">
+        <div class="top-bar">
+            <button class="icon-btn" onclick="app.nav('screen-parent')"><i class="fas fa-chevron-left"></i></button>
+            <div class="page-title">Guardians</div>
+            <div style="width:40px;"></div>
         </div>
-    </div>
-
-    <div id="overlay-sos" class="hidden" style="position:absolute; top:0; left:0; width:100%; height:100%; background:#FF7675; z-index:200; display:flex; flex-direction:column; align-items:center; justify-content:center; color:white; text-align:center;">
-        <i class="fas fa-exclamation-circle" style="font-size:80px; margin-bottom:20px;"></i>
-        <h1>ALERT SENT!</h1>
-        <button class="btn-3d" style="background:white; color:#FF7675; width:60%; margin-top:40px;" onclick="app.closeOverlays()">I'm Safe</button>
-    </div>
-
-    <div id="overlay-scan" class="hidden" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:500; display:flex; flex-direction:column; align-items:center; justify-content:center;">
-        <div style="width:250px; height:350px; border:2px solid white; border-radius:20px; position:relative; overflow:hidden; background:rgba(255,255,255,0.1);">
-            <div class="scan-line"></div>
-            <div style="color:white; text-align:center; margin-top:150px; font-weight:bold;">SCANNING ID...</div>
+        <div class="content-area">
+            <h4 style="margin: 0 0 10px 5px; color:#a4b0be; text-transform:uppercase; font-size:12px;">Current Access</h4>
+            <div class="bubble-card" style="cursor:default;">
+                <div class="b-avatar" style="background:#0984e3; color:white;"><i class="fas fa-user-shield"></i></div>
+                <div class="b-info"><div class="b-name">You</div><div class="b-status">Primary Admin</div></div>
+            </div>
+            
+            <h4 style="margin: 20px 0 10px 5px; color:#a4b0be; text-transform:uppercase; font-size:12px;">Invite Co-Parent</h4>
+            <div class="bubble-card" onclick="app.generateInvite()">
+                <div class="b-avatar" style="background:#00b894; color:white;"><i class="fas fa-link"></i></div>
+                <div class="b-info"><div class="b-name">Generate Link</div><div class="b-status">Invite spouse or guardian</div></div>
+                <i class="fas fa-chevron-right chevron"></i>
+            </div>
         </div>
-        <p style="color:#aaa; margin-top:20px;">Align document in frame</p>
     </div>
 
     <div id="screen-settings" class="screen hidden">
@@ -266,9 +252,33 @@
                 <input type="checkbox" id="curfew-toggle" style="transform: scale(1.5); accent-color: var(--primary);">
             </div>
             <h4 style="margin: 20px 0 10px 5px; color:#a4b0be; text-transform:uppercase; font-size:12px;">Schedule</h4>
-            <div class="time-box"><span>Start Time</span><input type="time" id="time-start"></div>
-            <div class="time-box" style="margin-top:10px;"><span>End Time</span><input type="time" id="time-end"></div>
+            <div class="setting-row" style="background:#F0F4F8; padding:10px; border-radius:15px; margin-bottom:10px;">
+                <span style="font-weight:bold; color:#636E72;">Start</span><input type="time" id="time-start">
+            </div>
+            <div class="setting-row" style="background:#F0F4F8; padding:10px; border-radius:15px;">
+                <span style="font-weight:bold; color:#636E72;">End</span><input type="time" id="time-end">
+            </div>
         </div>
+    </div>
+
+    <div id="overlay-qr" class="hidden overlay" style="background:rgba(45, 52, 54, 0.9);">
+        <div style="background:white; padding:30px; border-radius:30px; text-align:center;">
+            <img id="qr-img" src="" width="180">
+            <h2 id="qr-name">@user</h2>
+            <button class="btn-3d" style="margin-top:20px;" onclick="app.closeOverlays()">Close</button>
+        </div>
+    </div>
+    <div id="overlay-scan" class="hidden overlay" style="background:rgba(0,0,0,0.9);">
+        <div style="width:250px; height:350px; border:2px solid white; border-radius:20px; position:relative; overflow:hidden; background:rgba(255,255,255,0.1);">
+            <div class="scan-line"></div>
+            <div style="color:white; text-align:center; margin-top:150px; font-weight:bold;">SCANNING ID...</div>
+        </div>
+        <p style="color:#aaa; margin-top:20px;">Align document in frame</p>
+    </div>
+    <div id="overlay-sos" class="hidden overlay" style="background:#FF7675;">
+        <i class="fas fa-exclamation-circle" style="font-size:80px; margin-bottom:20px; color:white;"></i>
+        <h1 style="color:white;">ALERT SENT!</h1>
+        <button class="btn-3d" style="background:white; color:#FF7675; width:60%; margin-top:40px;" onclick="app.closeOverlays()">I'm Safe</button>
     </div>
 
 </div>
@@ -283,7 +293,6 @@
     let children = [];
     let selectedChildId = null;
     let parentVerified = false;
-    // Sound effect for notifications
     const beep = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
 
     const app = {
@@ -318,11 +327,9 @@
         },
 
         back: () => {
-             if(isParent && currentChat) {
-                app.nav('screen-child-detail');
-             } else {
-                app.nav(isParent ? 'screen-child-home');
-             }
+             if(isParent && currentChat) app.nav('screen-child-detail');
+             else if (id === 'screen-guardians') app.nav('screen-parent');
+             else app.nav(isParent ? 'screen-parent' : 'screen-child-home');
         },
 
         addChild: () => {
@@ -331,6 +338,7 @@
             if(name && user) socket.emit('register child', { name, username: user });
         },
 
+        // --- VERIFICATION ---
         startVerification: () => {
             if(parentVerified) return; 
             document.getElementById('overlay-scan').classList.remove('hidden');
@@ -344,6 +352,14 @@
             document.getElementById('overlay-scan').classList.add('hidden');
         },
 
+        // --- GUARDIANS ---
+        openGuardians: () => app.nav('screen-guardians'),
+        generateInvite: () => {
+            const code = "FAM-" + Math.floor(1000 + Math.random() * 9000);
+            alert("Invite Code Generated:\n\n" + code + "\n\nShare this with your co-parent to let them log in.");
+        },
+
+        // --- NAVIGATION ---
         openChildDetail: (id) => {
             selectedChildId = id;
             const child = children.find(c => c.id === id);
@@ -376,6 +392,7 @@
              const list = document.getElementById('activity-log');
              list.innerHTML = '';
              if(child.activityLog.length === 0) list.innerHTML = '<div style="color:#aaa; text-align:center;">No activity</div>';
+             
              child.activityLog.forEach(log => {
                 const div = document.createElement('div');
                 div.className = 'bubble-card';
@@ -390,13 +407,9 @@
         openChat: (id, name) => {
             currentChat = id;
             document.getElementById('chat-title').innerText = name;
-            
-            // CLEAR CHILD BADGE if needed
             if(id === 'ParentUser') document.getElementById('child-badge-parent').classList.add('hidden');
-
             const feed = document.getElementById('chat-feed');
             feed.innerHTML = '';
-            
             chatHistory.forEach(msg => {
                 if ((msg.sender === currentUser && msg.recipient === currentChat) || 
                     (msg.sender === currentChat && msg.recipient === currentUser)) {
@@ -458,8 +471,7 @@
         },
 
         closeOverlays: () => {
-            document.getElementById('overlay-qr').classList.add('hidden');
-            document.getElementById('overlay-sos').classList.add('hidden');
+            document.querySelectorAll('.overlay').forEach(el => el.classList.add('hidden'));
         },
 
         openSettings: () => {
@@ -512,7 +524,7 @@
             document.getElementById('notify-title').innerText = title;
             document.getElementById('notify-msg').innerText = text;
             banner.classList.add('show');
-            try { beep.play(); } catch(e){} // Play sound
+            try { beep.play(); } catch(e){} 
             setTimeout(() => { banner.classList.remove('show'); }, 4000);
         }
     };
@@ -534,29 +546,23 @@
     socket.on('verification complete', () => {
         parentVerified = true;
         app.updateVerifyUI();
-        alert("Success! Your identity has been verified.");
+        alert("Identity Verified");
     });
 
     socket.on('chat message', (msg) => {
         chatHistory.push(msg);
         
-        // PARENT NOTIFICATION LOGIC
         if (msg.sender !== currentUser && msg.recipient === currentUser) {
             
-            // Show Banner (Unless it's just the echo)
-            if(msg.sender !== 'AI_Tutor') {
-                app.showBanner("New Message", `From: ${msg.sender}`);
-            }
+            if(msg.sender !== 'AI_Tutor') app.showBanner("New Message", `From: ${msg.sender}`);
 
             if (document.getElementById('screen-chat').classList.contains('hidden')) {
-                // I AM PARENT
                 const child = children.find(c => c.username === msg.sender);
                 if(child) {
                     child.unread = true;
                     app.renderChildrenList();
                     app.updateDetailBadge();
                 }
-                // I AM CHILD
                 if(msg.sender === 'ParentUser') {
                     document.getElementById('child-badge-parent').classList.remove('hidden');
                 }
