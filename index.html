@@ -55,7 +55,7 @@
             z-index: 1000; position: absolute; top:0; left:0; width:100%; height:100%;
         }
         .glass-panel {
-            background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(12px); 
             border: 2px solid rgba(255,255,255,0.4); border-radius: 30px; padding: 30px 20px; width: 80%; text-align: center;
             box-shadow: 0 15px 35px rgba(0,0,0,0.1); 
         }
@@ -76,12 +76,22 @@
         .role-opt { flex: 1; padding: 8px; border-radius: 40px; color: rgba(255,255,255,0.7); cursor: pointer; font-weight: 700; }
         .role-opt.active { background: white; color: var(--deep-purple); }
 
+        /* TEXT LINK FOR INVITE */
+        .text-link { 
+            color: rgba(255,255,255,0.9); font-size: 14px; margin-top: 20px; 
+            cursor: pointer; text-decoration: underline; font-weight: 600; 
+            display: block; position: relative; z-index: 1002;
+        }
+
         /* APP SCREENS */
         .screen { flex: 1; display: flex; flex-direction: column; background: #F4F7FE; overflow-y: auto; position: absolute; width:100%; height:100%; top:0; left:0; }
         
         .top-bar { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; background: white; border-radius: 0 0 30px 30px; box-shadow: 0 5px 20px rgba(0,0,0,0.03); z-index: 10; }
         .page-title { font-size: 20px; color: var(--deep-purple); font-weight: 700; }
         .icon-btn { font-size: 18px; color: #4FACFE; background: #E6F0FF; width: 36px; height: 36px; border-radius: 12px; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; }
+        
+        /* LOGOUT BUTTON STYLE */
+        .logout-btn { color: #FF4757; background: #FFEBE6; }
 
         .content-area { padding: 20px; padding-bottom: 80px; }
         .bubble-card { background: white; padding: 15px; border-radius: 20px; margin-bottom: 15px; display: flex; align-items: center; box-shadow: 0 4px 0 #E0E6F0; cursor: pointer; transition: 0.1s; border: 1px solid #F0F4F8; }
@@ -89,7 +99,6 @@
         
         .b-avatar { width: 45px; height: 45px; background: #FFD166; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 22px; color: white; margin-right: 15px; position: relative; }
         
-        /* NOTIFICATION DOTS */
         .red-dot { width: 14px; height: 14px; background: #FF4757; border: 2px solid white; border-radius: 50%; position: absolute; top: -5px; right: -5px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 20; }
         .badge-new { background: #FF4757; color: white; font-size: 10px; font-weight: 800; padding: 4px 8px; border-radius: 10px; margin-left: auto; }
 
@@ -97,17 +106,7 @@
         .b-name { font-weight: 700; color: var(--deep-purple); font-size: 16px; }
         .b-status { font-size: 13px; color: #888; font-weight: 600; }
 
-        /* SOS BUTTON (Fixed Z-Index) */
-        .sos-btn { 
-            position: absolute; bottom: 25px; right: 20px; 
-            width: 65px; height: 65px; 
-            background: #FF4757; border-bottom: 5px solid #C41E3A; border-radius: 22px; 
-            display: flex; align-items: center; justify-content: center; 
-            color: white; font-weight: 900; font-size: 16px; 
-            box-shadow: 0 10px 20px rgba(255, 71, 87, 0.3); 
-            z-index: 2000; /* FORCE TO TOP */
-            cursor: pointer; 
-        }
+        .sos-btn { position: absolute; bottom: 25px; right: 20px; width: 65px; height: 65px; background: #FF4757; border-bottom: 5px solid #C41E3A; border-radius: 22px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 900; font-size: 16px; box-shadow: 0 10px 20px rgba(255, 71, 87, 0.3); z-index: 50; cursor: pointer; }
         .sos-btn:active { transform: translateY(4px); border-bottom: 2px solid #C41E3A; }
 
         .chat-feed { flex: 1; padding: 20px; overflow-y: scroll; display: flex; flex-direction: column; gap: 15px; }
@@ -155,19 +154,31 @@
                 <div id="role-parent" class="role-opt active" onclick="app.setRole('parent')">Parent</div>
                 <div id="role-child" class="role-opt" onclick="app.setRole('child')">Child</div>
             </div>
+            
             <div id="form-child" class="hidden">
                 <input id="login-user" class="slot-input" placeholder="Username (e.g. teen_user)">
                 <button id="btn-login-child" class="btn-3d" onclick="app.login()">Play</button>
             </div>
+            
             <div id="form-parent">
-                <p style="color:white; font-size:13px; opacity:0.8; margin-bottom:15px;">Parent Dashboard</p>
-                <button id="btn-login-parent" class="btn-3d" style="background: linear-gradient(to bottom, #6C5CE7, #a29bfe);" onclick="app.login()">Login</button>
+                <div id="parent-default">
+                    <p style="color:white; font-size:13px; opacity:0.8; margin-bottom:15px;">Parent Dashboard</p>
+                    <button id="btn-login-parent" class="btn-3d" style="background: linear-gradient(to bottom, #6C5CE7, #a29bfe);" onclick="app.login()">Login</button>
+                    <div class="text-link" onclick="app.toggleInviteMode()">Have an invite code?</div>
+                </div>
+                
+                <div id="parent-invite" class="hidden">
+                    <input id="invite-code" class="slot-input" placeholder="Enter Code (e.g. FAM-1234)">
+                    <button id="btn-join" class="btn-3d" style="background: linear-gradient(to bottom, #00b894, #55efc4);" onclick="app.joinFamily()">Join Family</button>
+                    <div class="text-link" onclick="app.toggleInviteMode()">Back to Login</div>
+                </div>
             </div>
         </div>
     </div>
 
     <div id="screen-parent" class="screen hidden">
         <div class="top-bar">
+            <button class="icon-btn logout-btn" onclick="app.logout()"><i class="fas fa-sign-out-alt"></i></button>
             <div class="page-title">Family Base</div>
             <button class="icon-btn" onclick="app.addChild()"><i class="fas fa-plus"></i></button>
         </div>
@@ -213,6 +224,7 @@
 
     <div id="screen-child-home" class="screen hidden">
         <div class="top-bar">
+            <button class="icon-btn logout-btn" onclick="app.logout()"><i class="fas fa-sign-out-alt"></i></button>
             <div class="page-title">My Squad</div>
             <button class="icon-btn" onclick="app.showQR()"><i class="fas fa-qrcode"></i></button>
         </div>
@@ -290,7 +302,7 @@
 <script>
     let socket;
     try {
-        socket = io(); // Connects to the Render server
+        socket = io();
     } catch(e) {
         console.error("Connection Error", e);
         alert("Server connection failed. Please refresh.");
@@ -318,16 +330,25 @@
             }
         },
 
+        toggleInviteMode: () => {
+            document.getElementById('parent-default').classList.toggle('hidden');
+            document.getElementById('parent-invite').classList.toggle('hidden');
+        },
+
+        joinFamily: () => {
+            const code = document.getElementById('invite-code').value;
+            if(!code) return alert("Enter code");
+            socket.emit('join family', code);
+        },
+
         login: () => {
             try {
-                // VISUAL FEEDBACK
                 const btn = isParent ? document.getElementById('btn-login-parent') : document.getElementById('btn-login-child');
                 if(btn) { btn.innerText = "Connecting..."; btn.disabled = true; }
 
                 if(isParent) {
                     currentUser = "ParentUser";
-                    app.nav('screen-parent');
-                    socket.emit('get children');
+                    socket.emit('parent login'); 
                 } else {
                     const user = document.getElementById('login-user').value;
                     if(!user) { alert("Please enter username"); app.resetBtn(); return; }
@@ -346,38 +367,17 @@
             document.getElementById('btn-login-child').disabled = false;
         },
 
+        logout: () => window.location.reload(), // FIXED: Logout logic added
+
         nav: (id) => {
             document.querySelectorAll('.screen').forEach(e => e.classList.add('hidden'));
             document.getElementById(id).classList.remove('hidden');
         },
 
         back: () => {
-             // Logic to handle back navigation based on context
-             if (id === 'screen-chat') {
-                 app.nav(isParent ? 'screen-child-detail' : 'screen-child-home');
-                 currentChat = null; // Clear chat context
-             } else if (id === 'screen-child-detail') {
-                 app.nav('screen-parent');
-             } else {
-                 // Fallback for unexpected states
-                 app.nav(isParent ? 'screen-parent' : 'screen-child-home');
-             }
-        },
-        
-        // This corrects the button click on the chat screen to use the logic above
-        // NOTE: The inline onclick="app.back()" in HTML calls this function directly. 
-        // We need to ensure it knows WHERE it is coming from.
-        // A simpler way for this prototype is to check visibility:
-        goBack: () => {
-            if(!document.getElementById('screen-chat').classList.contains('hidden')) {
-                app.nav(isParent ? 'screen-child-detail' : 'screen-child-home');
-                currentChat = null;
-            } else if (!document.getElementById('screen-child-detail').classList.contains('hidden')) {
-                app.nav('screen-parent');
-            } else {
-                // Default fallback
-                app.nav(isParent ? 'screen-parent' : 'screen-child-home');
-            }
+             if(isParent && currentChat) app.nav('screen-child-detail');
+             else if (id === 'screen-guardians') app.nav('screen-parent');
+             else app.nav(isParent ? 'screen-parent' : 'screen-child-home');
         },
 
         addChild: () => {
@@ -400,8 +400,7 @@
         },
 
         generateInvite: () => {
-            const code = "FAM-" + Math.floor(1000 + Math.random() * 9000);
-            alert("Invite Code Generated:\n\n" + code + "\n\nShare this with your co-parent to let them log in.");
+            socket.emit('generate invite');
         },
 
         openChildDetail: (id) => {
@@ -436,7 +435,6 @@
              const list = document.getElementById('activity-log');
              list.innerHTML = '';
              if(child.activityLog.length === 0) list.innerHTML = '<div style="color:#aaa; text-align:center;">No activity</div>';
-             
              child.activityLog.forEach(log => {
                 const div = document.createElement('div');
                 div.className = 'bubble-card';
@@ -593,6 +591,10 @@
             alert("Success! Your identity has been verified.");
         });
 
+        socket.on('invite code', (code) => {
+            alert("INVITE CODE:\n" + code + "\n\nGive this to your co-parent!");
+        });
+
         socket.on('chat message', (msg) => {
             chatHistory.push(msg);
             
@@ -622,7 +624,12 @@
 
         socket.on('login success', (user) => {
             currentUser = user.username;
-            app.nav('screen-child-home');
+            if(user.role === 'parent') {
+                app.nav('screen-parent');
+                socket.emit('get children');
+            } else {
+                app.nav('screen-child-home');
+            }
             app.resetBtn();
         });
 
