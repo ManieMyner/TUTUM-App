@@ -17,9 +17,9 @@
             --deep-purple: #432C7A;
             --text-dark: #2D3436;
             --text-light: #636E72;
+            --danger: #FF4757;
         }
 
-        /* BODY */
         body { 
             margin: 0; font-family: 'Fredoka', sans-serif; 
             background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
@@ -29,21 +29,12 @@
             box-sizing: border-box;
         }
 
-        /* MOBILE FRAME */
         .mobile-frame { 
-            width: 100%; 
-            max-width: 414px; 
-            height: 800px;
-            max-height: 90vh; 
-            position: relative; 
-            display: flex; flex-direction: column; overflow: hidden;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-            border-radius: 35px;
-            border: 6px solid rgba(255,255,255,0.3);
-            background: #F4F7FE;
+            width: 100%; max-width: 414px; height: 800px; max-height: 90vh; 
+            position: relative; display: flex; flex-direction: column; overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4); border-radius: 35px; border: 6px solid rgba(255,255,255,0.3); background: #F4F7FE;
         }
 
-        /* PHONE MODE */
         @media (max-width: 500px) {
             body { align-items: flex-start; padding: 0; height: 100vh; overflow: hidden; }
             .mobile-frame { width: 100%; height: 100vh; border: none; border-radius: 0; max-height: none; }
@@ -82,7 +73,19 @@
         .bubble-card { background: white; padding: 15px; border-radius: 20px; margin-bottom: 15px; display: flex; align-items: center; box-shadow: 0 4px 0 #E0E6F0; cursor: pointer; transition: 0.1s; border: 1px solid #F0F4F8; }
         .bubble-card:active { transform: translateY(2px); box-shadow: 0 2px 0 #E0E6F0; }
         
-        .b-avatar { width: 45px; height: 45px; background: #FFD166; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 22px; color: white; margin-right: 15px; }
+        /* AVATAR & NOTIFICATIONS */
+        .b-avatar { width: 45px; height: 45px; background: #FFD166; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 22px; color: white; margin-right: 15px; position: relative; }
+        
+        /* THE RED DOT */
+        .red-dot {
+            width: 14px; height: 14px; background: #FF4757; border: 2px solid white; border-radius: 50%;
+            position: absolute; top: -5px; right: -5px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        /* THE NEW BADGE */
+        .badge-new {
+            background: #FF4757; color: white; font-size: 10px; font-weight: 800; padding: 4px 8px; border-radius: 10px; margin-left: auto;
+        }
+
         .b-info { flex: 1; }
         .b-name { font-weight: 700; color: var(--deep-purple); font-size: 16px; }
         .b-status { font-size: 13px; color: #888; font-weight: 600; }
@@ -168,7 +171,8 @@
                     <div class="b-name">Messages</div>
                     <div class="b-status">Chat with child</div>
                 </div>
-                <i class="fas fa-chevron-right chevron"></i>
+                <div id="msg-badge" class="badge-new hidden">NEW</div>
+                <i class="fas fa-chevron-right chevron" style="margin-left: 10px;"></i>
             </div>
             <h4 style="margin: 20px 0 10px 5px; color:#a4b0be; text-transform:uppercase; font-size:12px;">Activity</h4>
             <div id="activity-log"></div>
@@ -196,8 +200,7 @@
                     <div class="b-status">Family Base</div>
                 </div>
             </div>
-            
-            </div>
+        </div>
         <div class="sos-btn" onclick="app.triggerSOS()">SOS</div>
     </div>
 
@@ -211,7 +214,6 @@
         <div class="input-bar">
             <input type="file" id="file-upload" accept="image/*" style="display:none;" onchange="app.sendImage()">
             <button onclick="document.getElementById('file-upload').click()" style="width:40px; height:40px; background:#dfe6e9; border:none; border-radius:50%; color:#636e72; cursor:pointer; margin-right:5px;"><i class="fas fa-camera"></i></button>
-            
             <input id="msg-input" class="chat-input" placeholder="Type here..." autocomplete="off">
             <button onclick="app.send()" style="width:45px; height:45px; background:#4FACFE; border:none; border-radius:50%; color:white; cursor:pointer; margin-left:10px;"><i class="fas fa-paper-plane"></i></button>
         </div>
@@ -245,18 +247,9 @@
                 </div>
                 <input type="checkbox" id="curfew-toggle" style="transform: scale(1.5); accent-color: var(--primary);">
             </div>
-
             <h4 style="margin: 20px 0 10px 5px; color:#a4b0be; text-transform:uppercase; font-size:12px;">Schedule</h4>
-            
-            <div class="time-box">
-                <span>Start Time</span>
-                <input type="time" id="time-start">
-            </div>
-            
-            <div class="time-box" style="margin-top:10px;">
-                <span>End Time</span>
-                <input type="time" id="time-end">
-            </div>
+            <div class="time-box"><span>Start Time</span><input type="time" id="time-start"></div>
+            <div class="time-box" style="margin-top:10px;"><span>End Time</span><input type="time" id="time-end"></div>
         </div>
     </div>
 
@@ -322,12 +315,28 @@
             const child = children.find(c => c.id === id);
             document.getElementById('detail-title').innerText = child.name;
             app.renderActivity(child);
+            app.updateDetailBadge(); // Check for dot
             app.nav('screen-child-detail');
+        },
+
+        updateDetailBadge: () => {
+            const child = children.find(c => c.id === selectedChildId);
+            if(child && child.unread) {
+                document.getElementById('msg-badge').classList.remove('hidden');
+            } else {
+                document.getElementById('msg-badge').classList.add('hidden');
+            }
         },
 
         openParentChat: () => {
             const child = children.find(c => c.id === selectedChildId);
-            if(child) app.openChat(child.username, child.name);
+            if(child) {
+                // Clear the unread flag locally
+                child.unread = false; 
+                app.updateDetailBadge(); // Hide badge
+                app.renderChildrenList(); // Remove dashboard dot
+                app.openChat(child.username, child.name);
+            }
         },
 
         renderActivity: (child) => {
@@ -421,7 +430,6 @@
             document.getElementById('overlay-sos').classList.add('hidden');
         },
 
-        // --- SETTINGS ---
         openSettings: () => {
             const child = children.find(c => c.id === selectedChildId);
             if(child) {
@@ -439,30 +447,50 @@
             };
             socket.emit('update settings', { childId: selectedChildId, curfew: settings });
             app.nav('screen-child-detail');
+        },
+
+        renderChildrenList: () => {
+            const list = document.getElementById('children-list');
+            list.innerHTML = '';
+            children.forEach(c => {
+                const div = document.createElement('div');
+                div.className = 'bubble-card';
+                div.onclick = () => app.openChildDetail(c.id);
+                
+                const isSOS = c.status && c.status.includes("SOS");
+                const showRedDot = c.unread ? '<div class="red-dot"></div>' : '';
+
+                div.innerHTML = `
+                    <div class="b-avatar" style="${isSOS ? 'background:#FF4757' : 'background:#a29bfe'}">
+                        ${showRedDot}
+                        <i class="fas ${isSOS ? 'fa-exclamation' : 'fa-user-astronaut'}"></i>
+                    </div>
+                    <div class="b-info">
+                        <div class="b-name">${c.name}</div>
+                        <div class="b-status" style="${isSOS ? 'color:#FF4757' : ''}">${c.status}</div>
+                    </div>
+                    <i class="fas fa-chevron-right chevron"></i>
+                `;
+                list.appendChild(div);
+            });
         }
     };
 
     socket.on('update children list', (data) => {
+        // We preserve local unread state if possible, or reset it.
+        // For simplicity in this version, we replace data but re-map local flags if needed.
+        // But the simplest is to just accept the server list.
+        const oldChildren = children;
         children = data;
-        const list = document.getElementById('children-list');
-        list.innerHTML = '';
-        children.forEach(c => {
-            const div = document.createElement('div');
-            div.className = 'bubble-card';
-            div.onclick = () => app.openChildDetail(c.id);
-            const isSOS = c.status && c.status.includes("SOS");
-            div.innerHTML = `
-                <div class="b-avatar" style="${isSOS ? 'background:#FF4757' : 'background:#a29bfe'}">
-                    <i class="fas ${isSOS ? 'fa-exclamation' : 'fa-user-astronaut'}"></i>
-                </div>
-                <div class="b-info">
-                    <div class="b-name">${c.name}</div>
-                    <div class="b-status" style="${isSOS ? 'color:#FF4757' : ''}">${c.status}</div>
-                </div>
-                <i class="fas fa-chevron-right chevron"></i>
-            `;
-            list.appendChild(div);
+        
+        // Restore local unread flags
+        children.forEach(newChild => {
+            const old = oldChildren.find(c => c.id === newChild.id);
+            if(old && old.unread) newChild.unread = true;
         });
+
+        app.renderChildrenList();
+        
         if(selectedChildId) {
              const currentChild = children.find(c => c.id === selectedChildId);
              if(currentChild) app.renderActivity(currentChild);
@@ -471,6 +499,22 @@
 
     socket.on('chat message', (msg) => {
         chatHistory.push(msg);
+        
+        // VISUAL NOTIFICATION LOGIC
+        if (msg.sender !== currentUser && msg.recipient === currentUser) {
+            // It's a message for ME.
+            // If I am NOT in the chat screen, mark as unread.
+            if (document.getElementById('screen-chat').classList.contains('hidden')) {
+                // Find sender in my children list
+                const child = children.find(c => c.username === msg.sender);
+                if(child) {
+                    child.unread = true;
+                    app.renderChildrenList(); // Refresh dashboard
+                    app.updateDetailBadge();  // Refresh detail view if open
+                }
+            }
+        }
+
         if(!document.getElementById('screen-chat').classList.contains('hidden')) {
              if((msg.sender === currentUser && msg.recipient === currentChat) ||
                (msg.sender === currentChat && msg.recipient === currentUser)) {
