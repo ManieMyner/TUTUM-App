@@ -166,6 +166,14 @@
             <button class="icon-btn" onclick="app.showQR()"><i class="fas fa-qrcode"></i></button>
         </div>
         <div class="content-area">
+            <div class="bubble-card" onclick="app.openChat('AI_Tutor', 'Tutor Tom')">
+                <div class="b-avatar" style="background:#a29bfe;"><i class="fas fa-robot"></i></div>
+                <div class="b-info">
+                    <div class="b-name">Tutor Tom</div>
+                    <div class="b-status" style="color:#6C5CE7; font-weight:800;">Homework Helper</div>
+                </div>
+            </div>
+
             <div class="bubble-card" onclick="app.openChat('ParentUser', 'Mom & Dad')">
                 <div class="b-avatar" style="background:#0984e3;"><i class="fas fa-user-shield"></i></div>
                 <div class="b-info">
@@ -173,6 +181,7 @@
                     <div class="b-status">Family Base</div>
                 </div>
             </div>
+            
             <div class="bubble-card" onclick="app.openChat('Friend', 'Best Friend')">
                 <div class="b-avatar" style="background:#00b894;"><i class="fas fa-user-astronaut"></i></div>
                 <div class="b-info">
@@ -339,6 +348,8 @@
             feed.innerHTML = '';
             
             chatHistory.forEach(msg => {
+                const isMe = (msg.sender === currentUser);
+                const isThem = (msg.sender === currentChat);
                 if ((msg.sender === currentUser && msg.recipient === currentChat) || 
                     (msg.sender === currentChat && msg.recipient === currentUser)) {
                     app.renderMsg(msg);
@@ -350,7 +361,12 @@
         send: () => {
             const txt = document.getElementById('msg-input').value;
             if(txt) {
-                socket.emit('chat message', { sender: currentUser, recipient: currentChat, text: txt });
+                // If chatting with AI, use special event
+                if(currentChat === 'AI_Tutor') {
+                    socket.emit('tutor message', { sender: currentUser, text: txt });
+                } else {
+                    socket.emit('chat message', { sender: currentUser, recipient: currentChat, text: txt });
+                }
                 document.getElementById('msg-input').value = '';
             }
         },
@@ -358,14 +374,9 @@
         sendImage: () => {
             const file = document.getElementById('file-upload').files[0];
             if(file) {
-                // Check size (Limit to 1MB for prototype stability)
-                if(file.size > 1000000) {
-                    alert("Image too big! Please keep it under 1MB.");
-                    return;
-                }
+                if(file.size > 1000000) { alert("Image too big!"); return; }
                 const reader = new FileReader();
                 reader.onload = function(evt) {
-                    // Send the image data as base64
                     socket.emit('chat message', { 
                         sender: currentUser, 
                         recipient: currentChat, 
@@ -373,7 +384,7 @@
                     });
                 };
                 reader.readAsDataURL(file);
-                document.getElementById('file-upload').value = ""; // Reset
+                document.getElementById('file-upload').value = "";
             }
         },
 
@@ -383,13 +394,11 @@
             const isMe = msg.sender === currentUser;
             div.className = `msg-bubble msg ${isMe ? 'me' : 'them'}`;
             
-            // Check if it's text or image
             if(msg.image) {
                 div.innerHTML = `<img src="${msg.image}" class="chat-img">`;
             } else {
                 div.innerText = msg.text;
             }
-            
             feed.appendChild(div);
             feed.scrollTop = feed.scrollHeight;
         },
