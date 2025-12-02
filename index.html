@@ -38,16 +38,6 @@
             .mobile-frame { width: 100%; height: 100vh; border: none; border-radius: 0; max-height: none; }
         }
 
-        /* UTILS */
-        .hidden { display: none !important; }
-
-        /* NOTIFICATION DOTS */
-        .red-dot {
-            width: 12px; height: 12px; background: #FF4757; border: 2px solid white; border-radius: 50%;
-            position: absolute; top: 0; right: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.3); z-index: 10;
-        }
-        .badge-new { background: #FF4757; color: white; font-size: 10px; font-weight: 800; padding: 4px 8px; border-radius: 10px; margin-left: auto; }
-
         /* LOGIN SCREEN */
         #screen-login {
             background: linear-gradient(135deg, #6C5CE7 0%, #a29bfe 100%);
@@ -71,6 +61,7 @@
 
         /* APP SCREENS */
         .screen { flex: 1; display: flex; flex-direction: column; background: #F4F7FE; overflow-y: auto; }
+        .hidden { display: none !important; }
         
         .top-bar { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; background: white; border-radius: 0 0 30px 30px; box-shadow: 0 5px 20px rgba(0,0,0,0.03); z-index: 10; }
         .page-title { font-size: 20px; color: var(--deep-purple); font-weight: 700; }
@@ -81,6 +72,27 @@
         .bubble-card:active { transform: translateY(2px); box-shadow: 0 2px 0 #E0E6F0; }
         
         .b-avatar { width: 45px; height: 45px; background: #FFD166; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 22px; color: white; margin-right: 15px; position: relative; }
+        
+        /* NOTIFICATION DOTS */
+        .red-dot { width: 14px; height: 14px; background: #FF4757; border: 2px solid white; border-radius: 50%; position: absolute; top: -5px; right: -5px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 20; }
+        .badge-new { background: #FF4757; color: white; font-size: 10px; font-weight: 800; padding: 4px 8px; border-radius: 10px; margin-left: auto; }
+
+        /* IN-APP NOTIFICATION BANNER */
+        .notify-banner {
+            position: absolute; top: -80px; left: 20px; right: 20px;
+            background: rgba(255,255,255,0.95); backdrop-filter: blur(10px);
+            padding: 15px; border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            display: flex; align-items: center; gap: 15px;
+            transition: top 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            z-index: 1000;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        .notify-banner.show { top: 20px; }
+        .notify-icon { width: 40px; height: 40px; background: #E3FCEF; border-radius: 12px; color: #00B894; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .notify-content div:first-child { font-weight: 700; font-size: 14px; color: var(--text-dark); }
+        .notify-content div:last-child { font-size: 12px; color: var(--text-light); }
+
         .b-info { flex: 1; }
         .b-name { font-weight: 700; color: var(--deep-purple); font-size: 16px; }
         .b-status { font-size: 13px; color: #888; font-weight: 600; }
@@ -102,13 +114,11 @@
         .time-box { background: #F0F4F8; padding: 10px; border-radius: 15px; display: flex; align-items: center; gap: 10px; font-weight: bold; color: var(--text-light); }
         input[type="time"] { border: none; background: transparent; font-family: 'Fredoka'; font-weight: bold; font-size: 16px; color: var(--deep-purple); }
 
-        /* VERIFICATION BADGES */
         .status-box { padding:15px; border-radius:15px; font-weight:700; font-size:14px; margin-bottom:20px; display:flex; align-items:center; gap:10px; cursor: pointer; transition: 0.1s; }
         .status-unverified { background:#FEE2E2; color:#DC2626; border: 1px solid #DC2626; }
         .status-verified { background:#E3FCEF; color:#00B894; border: 1px solid #00B894; cursor: default; }
         .status-box:active { transform: scale(0.98); }
 
-        /* SCANNING ANIMATION */
         .scan-line { width: 100%; height: 4px; background: #00F2FE; position: absolute; top: 20%; animation: scan 2s infinite alternate; box-shadow: 0 0 10px #00F2FE; }
         @keyframes scan { from { top: 10%; } to { top: 90%; } }
     </style>
@@ -116,6 +126,14 @@
 <body>
 
 <div class="mobile-frame">
+
+    <div id="notify-banner" class="notify-banner">
+        <div class="notify-icon"><i class="fas fa-comment-dots"></i></div>
+        <div class="notify-content">
+            <div id="notify-title">New Message</div>
+            <div id="notify-msg">Sent a photo</div>
+        </div>
+    </div>
 
     <div id="screen-login" class="screen">
         <div class="glass-panel">
@@ -145,12 +163,10 @@
             <button class="icon-btn" onclick="app.addChild()"><i class="fas fa-plus"></i></button>
         </div>
         <div class="content-area">
-            
             <div id="verify-box" class="status-box status-unverified" onclick="app.startVerification()">
                 <i id="verify-icon" class="fas fa-exclamation-circle"></i> 
                 <span id="verify-text">Identity Unverified (Tap to Fix)</span>
             </div>
-
             <h4 style="margin: 0 0 10px 5px; color:#a4b0be; text-transform:uppercase; font-size:12px;">Your Kids</h4>
             <div id="children-list"></div>
         </div>
@@ -192,7 +208,7 @@
             </div>
             <div class="bubble-card" onclick="app.openChat('ParentUser', 'Mom & Dad')">
                 <div class="b-avatar" style="background:#0984e3;">
-                    <div id="badge-parent" class="red-dot hidden"></div>
+                    <div id="child-badge-parent" class="red-dot hidden"></div>
                     <i class="fas fa-user-shield"></i>
                 </div>
                 <div class="b-info"><div class="b-name">Mom & Dad</div><div class="b-status">Family Base</div></div>
@@ -267,6 +283,8 @@
     let children = [];
     let selectedChildId = null;
     let parentVerified = false;
+    // Sound effect for notifications
+    const beep = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
 
     const app = {
         setRole: (role) => {
@@ -313,7 +331,6 @@
             if(name && user) socket.emit('register child', { name, username: user });
         },
 
-        // --- VERIFICATION ---
         startVerification: () => {
             if(parentVerified) return; 
             document.getElementById('overlay-scan').classList.remove('hidden');
@@ -327,7 +344,6 @@
             document.getElementById('overlay-scan').classList.add('hidden');
         },
 
-        // --- NAVIGATION ---
         openChildDetail: (id) => {
             selectedChildId = id;
             const child = children.find(c => c.id === id);
@@ -360,7 +376,6 @@
              const list = document.getElementById('activity-log');
              list.innerHTML = '';
              if(child.activityLog.length === 0) list.innerHTML = '<div style="color:#aaa; text-align:center;">No activity</div>';
-             
              child.activityLog.forEach(log => {
                 const div = document.createElement('div');
                 div.className = 'bubble-card';
@@ -376,8 +391,8 @@
             currentChat = id;
             document.getElementById('chat-title').innerText = name;
             
-            // CLEAR CHILD BADGE if opening parent chat
-            if(id === 'ParentUser') document.getElementById('badge-parent').classList.add('hidden');
+            // CLEAR CHILD BADGE if needed
+            if(id === 'ParentUser') document.getElementById('child-badge-parent').classList.add('hidden');
 
             const feed = document.getElementById('chat-feed');
             feed.innerHTML = '';
@@ -490,6 +505,15 @@
                 `;
                 list.appendChild(div);
             });
+        },
+
+        showBanner: (title, text) => {
+            const banner = document.getElementById('notify-banner');
+            document.getElementById('notify-title').innerText = title;
+            document.getElementById('notify-msg').innerText = text;
+            banner.classList.add('show');
+            try { beep.play(); } catch(e){} // Play sound
+            setTimeout(() => { banner.classList.remove('show'); }, 4000);
         }
     };
 
@@ -516,19 +540,25 @@
     socket.on('chat message', (msg) => {
         chatHistory.push(msg);
         
-        // PARENT Notification
+        // PARENT NOTIFICATION LOGIC
         if (msg.sender !== currentUser && msg.recipient === currentUser) {
+            
+            // Show Banner (Unless it's just the echo)
+            if(msg.sender !== 'AI_Tutor') {
+                app.showBanner("New Message", `From: ${msg.sender}`);
+            }
+
             if (document.getElementById('screen-chat').classList.contains('hidden')) {
-                // If I am PARENT
+                // I AM PARENT
                 const child = children.find(c => c.username === msg.sender);
                 if(child) {
                     child.unread = true;
                     app.renderChildrenList();
                     app.updateDetailBadge();
                 }
-                // If I am CHILD and sender is Parent
+                // I AM CHILD
                 if(msg.sender === 'ParentUser') {
-                    document.getElementById('badge-parent').classList.remove('hidden');
+                    document.getElementById('child-badge-parent').classList.remove('hidden');
                 }
             }
         }
