@@ -8,13 +8,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
     
     <style>
-        /* --- 3D ISOMETRIC THEME --- */
+        /* --- THEME --- */
         :root {
             --primary: #4FACFE;
-            --primary-grad: linear-gradient(to right, #4FACFE 0%, #00F2FE 100%);
             --deep-purple: #432C7A;
             --text-dark: #2D3436;
-            --text-light: #636E72;
             --danger: #FF4757;
         }
 
@@ -76,12 +74,7 @@
         .role-opt { flex: 1; padding: 8px; border-radius: 40px; color: rgba(255,255,255,0.7); cursor: pointer; font-weight: 700; }
         .role-opt.active { background: white; color: var(--deep-purple); }
 
-        /* TEXT LINK FOR INVITE */
-        .text-link { 
-            color: rgba(255,255,255,0.9); font-size: 14px; margin-top: 20px; 
-            cursor: pointer; text-decoration: underline; font-weight: 600; 
-            display: block; position: relative; z-index: 1002;
-        }
+        .text-link { color: rgba(255,255,255,0.9); font-size: 14px; margin-top: 20px; cursor: pointer; text-decoration: underline; font-weight: 600; display: block; position: relative; z-index: 1002; }
 
         /* APP SCREENS */
         .screen { flex: 1; display: flex; flex-direction: column; background: #F4F7FE; overflow-y: auto; position: absolute; width:100%; height:100%; top:0; left:0; }
@@ -90,7 +83,6 @@
         .page-title { font-size: 20px; color: var(--deep-purple); font-weight: 700; }
         .icon-btn { font-size: 18px; color: #4FACFE; background: #E6F0FF; width: 36px; height: 36px; border-radius: 12px; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; }
         
-        /* LOGOUT BUTTON STYLE */
         .logout-btn { color: #FF4757; background: #FFEBE6; }
 
         .content-area { padding: 20px; padding-bottom: 80px; }
@@ -128,7 +120,6 @@
         .status-verified { background:#E3FCEF; color:#00B894; border: 1px solid #00B894; cursor: default; }
         .status-box:active { transform: scale(0.98); }
 
-        /* OVERLAYS */
         .overlay { position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:3000; display:flex; flex-direction:column; align-items:center; justify-content:center; }
         .scan-line { width: 100%; height: 4px; background: #00F2FE; position: absolute; top: 20%; animation: scan 2s infinite alternate; box-shadow: 0 0 10px #00F2FE; }
         @keyframes scan { from { top: 10%; } to { top: 90%; } }
@@ -187,10 +178,15 @@
                 <i id="verify-icon" class="fas fa-exclamation-circle"></i><span id="verify-text">Identity Unverified (Tap to Fix)</span>
             </div>
             
-            <div class="bubble-card" onclick="app.generateInvite()">
-                <div class="b-avatar" style="background:#0984e3; color:white;"><i class="fas fa-users"></i></div>
-                <div class="b-info"><div class="b-name">Guardians</div><div class="b-status">Manage Co-Parents</div></div>
-                <i class="fas fa-chevron-right chevron"></i>
+            <div style="display:flex; gap:10px; margin-bottom:20px;">
+                <div class="bubble-card" style="flex:1; justify-content:center; flex-direction:column; text-align:center; padding:20px;" onclick="app.openGuardianChat()">
+                    <div class="b-avatar" style="margin:0 auto 10px; background:#6C5CE7;"><i class="fas fa-comments"></i></div>
+                    <div class="b-name" style="font-size:14px;">Co-Parent Chat</div>
+                </div>
+                <div class="bubble-card" style="flex:1; justify-content:center; flex-direction:column; text-align:center; padding:20px;" onclick="app.generateInvite()">
+                    <div class="b-avatar" style="margin:0 auto 10px; background:#00b894;"><i class="fas fa-user-plus"></i></div>
+                    <div class="b-name" style="font-size:14px;">Invite Spouse</div>
+                </div>
             </div>
 
             <h4 style="margin: 20px 0 10px 5px; color:#a4b0be; text-transform:uppercase; font-size:12px;">Your Kids</h4>
@@ -367,7 +363,7 @@
             document.getElementById('btn-login-child').disabled = false;
         },
 
-        logout: () => window.location.reload(), // FIXED: Logout logic added
+        logout: () => window.location.reload(),
 
         nav: (id) => {
             document.querySelectorAll('.screen').forEach(e => e.classList.add('hidden'));
@@ -375,8 +371,11 @@
         },
 
         back: () => {
-             if(isParent && currentChat) app.nav('screen-child-detail');
-             else if (id === 'screen-guardians') app.nav('screen-parent');
+             if(isParent && currentChat) {
+                 // Check if it was guardian chat or child chat
+                 if(currentChat === 'GuardianRoom') app.nav('screen-parent');
+                 else app.nav('screen-child-detail');
+             }
              else app.nav(isParent ? 'screen-parent' : 'screen-child-home');
         },
 
@@ -431,6 +430,10 @@
             }
         },
 
+        openGuardianChat: () => {
+            app.openChat('GuardianRoom', 'Co-Parent Chat');
+        },
+
         renderActivity: (child) => {
              const list = document.getElementById('activity-log');
              list.innerHTML = '';
@@ -452,10 +455,18 @@
             if(id === 'ParentUser') document.getElementById('child-badge-parent').classList.add('hidden');
             const feed = document.getElementById('chat-feed');
             feed.innerHTML = '';
+            
             chatHistory.forEach(msg => {
-                if ((msg.sender === currentUser && msg.recipient === currentChat) || 
-                    (msg.sender === currentChat && msg.recipient === currentUser)) {
-                    app.renderMsg(msg);
+                // Guardian Room Logic
+                if (id === 'GuardianRoom') {
+                    if (msg.recipient === 'GuardianRoom') app.renderMsg(msg);
+                } 
+                // Private Chat Logic
+                else {
+                    if ((msg.sender === currentUser && msg.recipient === currentChat) || 
+                        (msg.sender === currentChat && msg.recipient === currentUser)) {
+                        app.renderMsg(msg);
+                    }
                 }
             });
             app.nav('screen-chat');
@@ -598,9 +609,10 @@
         socket.on('chat message', (msg) => {
             chatHistory.push(msg);
             
+            // PARENT NOTIFICATION LOGIC
+            // 1. Child to Parent
             if (msg.sender !== currentUser && msg.recipient === currentUser) {
                 if(msg.sender !== 'AI_Tutor') app.showBanner("New Message", `From: ${msg.sender}`);
-
                 if (document.getElementById('screen-chat').classList.contains('hidden')) {
                     const child = children.find(c => c.username === msg.sender);
                     if(child) {
@@ -608,17 +620,26 @@
                         app.renderChildrenList();
                         app.updateDetailBadge();
                     }
-                    if(msg.sender === 'ParentUser') {
-                        document.getElementById('child-badge-parent').classList.remove('hidden');
-                    }
+                    if(msg.sender === 'ParentUser') document.getElementById('child-badge-parent').classList.remove('hidden');
                 }
+            }
+            // 2. Guardian Chat Notification
+            if (msg.recipient === 'GuardianRoom' && currentUser === 'ParentUser' && msg.sender !== 'ParentUser') {
+                 if(document.getElementById('screen-chat').classList.contains('hidden')) {
+                     app.showBanner("Co-Parent", msg.text);
+                 }
             }
 
             if(!document.getElementById('screen-chat').classList.contains('hidden')) {
-                 if((msg.sender === currentUser && msg.recipient === currentChat) ||
-                   (msg.sender === currentChat && msg.recipient === currentUser)) {
-                    app.renderMsg(msg);
-                }
+                 // Check if message belongs in current room
+                 if(currentChat === 'GuardianRoom') {
+                     if(msg.recipient === 'GuardianRoom') app.renderMsg(msg);
+                 } else {
+                     if((msg.sender === currentUser && msg.recipient === currentChat) ||
+                       (msg.sender === currentChat && msg.recipient === currentUser)) {
+                        app.renderMsg(msg);
+                    }
+                 }
             }
         });
 
