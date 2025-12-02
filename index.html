@@ -38,7 +38,6 @@
             .mobile-frame { width: 100%; height: 100vh; border: none; border-radius: 0; max-height: none; }
         }
 
-        /* UTILS */
         .hidden { display: none !important; }
 
         /* NOTIFICATION BANNER */
@@ -55,26 +54,28 @@
         #screen-login {
             background: linear-gradient(135deg, #6C5CE7 0%, #a29bfe 100%);
             justify-content: center; align-items: center;
-            z-index: 100; /* Ensure it's on top */
+            z-index: 1000; /* Ensure it's on top */
         }
         .glass-panel {
             background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
             border: 2px solid var(--glass-border); border-radius: 30px; padding: 30px 20px; width: 80%; text-align: center;
             box-shadow: 0 15px 35px rgba(0,0,0,0.1); 
-            /* Removed Animation temporarily to fix clicking issues */
         }
 
         h1.logo-text { font-size: 48px; color: white; text-shadow: 0 4px 10px rgba(0,0,0,0.2); margin: 0 0 10px 0; }
         .slot-input { background: rgba(255,255,255,0.9); border: none; border-radius: 50px; padding: 15px 25px; width: 100%; box-sizing: border-box; margin-bottom: 15px; font-family: 'Fredoka'; font-size: 19px; font-weight: 600; outline: none; }
-        .btn-3d { background: linear-gradient(to bottom, #4FACFE 0%, #00F2FE 100%); border: none; border-bottom: 6px solid #0099AA; border-radius: 50px; padding: 15px; width: 100%; color: white; font-family: 'Fredoka'; font-size: 20px; font-weight: 700; cursor: pointer; transition: all 0.1s; }
+        
+        .btn-3d { background: linear-gradient(to bottom, #4FACFE 0%, #00F2FE 100%); border: none; border-bottom: 6px solid #0099AA; border-radius: 50px; padding: 15px; width: 100%; color: white; font-family: 'Fredoka'; font-size: 20px; font-weight: 700; cursor: pointer; transition: all 0.1s; position: relative; z-index: 1001; }
         .btn-3d:active { transform: translateY(4px); border-bottom: 2px solid #0099AA; }
+        /* When disabled/loading */
+        .btn-3d:disabled { background: #ccc; border-bottom: 6px solid #999; cursor: not-allowed; transform: none; }
 
-        .role-pill { background: rgba(0,0,0,0.2); border-radius: 50px; display: flex; padding: 5px; margin-bottom: 20px; }
+        .role-pill { background: rgba(0,0,0,0.2); border-radius: 50px; display: flex; padding: 5px; margin-bottom: 20px; position: relative; z-index: 1001; }
         .role-opt { flex: 1; padding: 8px; border-radius: 40px; color: rgba(255,255,255,0.7); cursor: pointer; font-weight: 700; }
         .role-opt.active { background: white; color: var(--deep-purple); }
 
         /* APP SCREENS */
-        .screen { flex: 1; display: flex; flex-direction: column; background: #F4F7FE; overflow-y: auto; position: absolute; width:100%; height:100%; }
+        .screen { flex: 1; display: flex; flex-direction: column; background: #F4F7FE; overflow-y: auto; position: absolute; width:100%; height:100%; top:0; left:0; }
         
         .top-bar { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; background: white; border-radius: 0 0 30px 30px; box-shadow: 0 5px 20px rgba(0,0,0,0.03); z-index: 10; }
         .page-title { font-size: 20px; color: var(--deep-purple); font-weight: 700; }
@@ -144,11 +145,11 @@
             </div>
             <div id="form-child" class="hidden">
                 <input id="login-user" class="slot-input" placeholder="Username (e.g. teen_user)">
-                <button class="btn-3d" onclick="app.login()">Play</button>
+                <button id="btn-login-child" class="btn-3d" onclick="app.login()">Play</button>
             </div>
             <div id="form-parent">
                 <p style="color:white; font-size:13px; opacity:0.8; margin-bottom:15px;">Parent Dashboard</p>
-                <button class="btn-3d" style="background: linear-gradient(to bottom, #6C5CE7, #a29bfe);" onclick="app.login()">Login</button>
+                <button id="btn-login-parent" class="btn-3d" style="background: linear-gradient(to bottom, #6C5CE7, #a29bfe);" onclick="app.login()">Login</button>
             </div>
         </div>
     </div>
@@ -299,15 +300,34 @@
         },
 
         login: () => {
-            if(isParent) {
-                currentUser = "ParentUser";
-                app.nav('screen-parent');
-                socket.emit('get children');
-            } else {
-                const user = document.getElementById('login-user').value;
-                if(!user) return alert("Username needed!");
-                socket.emit('child login', user);
+            try {
+                // VISUAL FEEDBACK: Change button text to show activity
+                const btn = isParent ? document.getElementById('btn-login-parent') : document.getElementById('btn-login-child');
+                if(btn) {
+                    btn.innerText = "Connecting...";
+                    btn.disabled = true; 
+                }
+
+                if(isParent) {
+                    currentUser = "ParentUser";
+                    app.nav('screen-parent');
+                    socket.emit('get children');
+                } else {
+                    const user = document.getElementById('login-user').value;
+                    if(!user) { alert("Please enter username"); app.resetBtn(); return; }
+                    socket.emit('child login', user);
+                }
+            } catch(e) {
+                alert("App Error: " + e.message);
+                app.resetBtn();
             }
+        },
+
+        resetBtn: () => {
+            document.getElementById('btn-login-parent').innerText = "Login";
+            document.getElementById('btn-login-parent').disabled = false;
+            document.getElementById('btn-login-child').innerText = "Play";
+            document.getElementById('btn-login-child').disabled = false;
         },
 
         nav: (id) => {
@@ -530,7 +550,7 @@
     socket.on('verification complete', () => {
         parentVerified = true;
         app.updateVerifyUI();
-        alert("Success! Your identity has been verified.");
+        alert("Identity Verified");
     });
 
     socket.on('chat message', (msg) => {
@@ -564,10 +584,15 @@
     socket.on('login success', (user) => {
         currentUser = user.username;
         app.nav('screen-child-home');
+        app.resetBtn();
     });
 
     socket.on('toast', (t) => alert(t));
-    socket.on('login failed', (t) => alert(t));
+    
+    socket.on('login failed', (t) => {
+        alert(t);
+        app.resetBtn();
+    });
 
 </script>
 </body>
