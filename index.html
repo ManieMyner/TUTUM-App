@@ -11,8 +11,8 @@
         /* --- THEME --- */
         :root {
             --primary: #4FACFE;
-            --deep-purple: #432C7A;
             --text-dark: #2D3436;
+            --text-light: #636E72;
             --danger: #FF4757;
         }
 
@@ -36,11 +36,10 @@
 
         .hidden { display: none !important; }
 
-        /* NOTIFICATION BANNER */
+        /* NOTIFICATIONS */
         .notify-banner {
             position: absolute; top: -80px; left: 20px; right: 20px;
-            background: rgba(255,255,255,0.95); backdrop-filter: blur(10px);
-            padding: 15px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            background: rgba(255,255,255,0.95); padding: 15px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.15);
             display: flex; align-items: center; gap: 15px; transition: top 0.5s; z-index: 2000;
         }
         .notify-banner.show { top: 20px; }
@@ -49,31 +48,22 @@
         /* LOGIN SCREEN */
         #screen-login {
             background: linear-gradient(135deg, #6C5CE7 0%, #a29bfe 100%);
-            justify-content: center; align-items: center;
-            z-index: 1000; position: absolute; top:0; left:0; width:100%; height:100%;
+            justify-content: center; align-items: center; z-index: 1000; position: absolute; top:0; left:0; width:100%; height:100%;
         }
         .glass-panel {
-            background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(12px); 
-            border: 2px solid rgba(255,255,255,0.4); border-radius: 30px; padding: 30px 20px; width: 80%; text-align: center;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.1); 
+            background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(12px); border: 2px solid rgba(255,255,255,0.4); border-radius: 30px; padding: 30px 20px; width: 80%; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.1); 
         }
 
         h1.logo-text { font-size: 48px; color: white; text-shadow: 0 4px 10px rgba(0,0,0,0.2); margin: 0 0 10px 0; }
         .slot-input { background: rgba(255,255,255,0.9); border: none; border-radius: 50px; padding: 15px 25px; width: 100%; box-sizing: border-box; margin-bottom: 15px; font-family: 'Fredoka'; font-size: 19px; font-weight: 600; outline: none; }
         
-        .btn-3d { 
-            background: linear-gradient(to bottom, #4FACFE 0%, #00F2FE 100%); 
-            border: none; border-bottom: 6px solid #0099AA; border-radius: 50px; 
-            padding: 15px; width: 100%; color: white; font-family: 'Fredoka'; font-size: 20px; font-weight: 700; 
-            cursor: pointer; transition: all 0.1s; position: relative; z-index: 1001; 
-        }
+        .btn-3d { background: linear-gradient(to bottom, #4FACFE 0%, #00F2FE 100%); border: none; border-bottom: 6px solid #0099AA; border-radius: 50px; padding: 15px; width: 100%; color: white; font-family: 'Fredoka'; font-size: 20px; font-weight: 700; cursor: pointer; transition: all 0.1s; position: relative; z-index: 1001; }
         .btn-3d:active { transform: translateY(4px); border-bottom: 2px solid #0099AA; }
         .btn-3d:disabled { background: #ccc; border-bottom: 6px solid #999; cursor: not-allowed; transform: none; }
 
         .role-pill { background: rgba(0,0,0,0.2); border-radius: 50px; display: flex; padding: 5px; margin-bottom: 20px; position: relative; z-index: 1001; }
         .role-opt { flex: 1; padding: 8px; border-radius: 40px; color: rgba(255,255,255,0.7); cursor: pointer; font-weight: 700; }
         .role-opt.active { background: white; color: var(--deep-purple); }
-
         .text-link { color: rgba(255,255,255,0.9); font-size: 14px; margin-top: 20px; cursor: pointer; text-decoration: underline; font-weight: 600; display: block; position: relative; z-index: 1002; }
 
         /* APP SCREENS */
@@ -82,7 +72,6 @@
         .top-bar { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; background: white; border-radius: 0 0 30px 30px; box-shadow: 0 5px 20px rgba(0,0,0,0.03); z-index: 10; }
         .page-title { font-size: 20px; color: var(--deep-purple); font-weight: 700; }
         .icon-btn { font-size: 18px; color: #4FACFE; background: #E6F0FF; width: 36px; height: 36px; border-radius: 12px; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; }
-        
         .logout-btn { color: #FF4757; background: #FFEBE6; }
 
         .content-area { padding: 20px; padding-bottom: 80px; }
@@ -90,7 +79,6 @@
         .bubble-card:active { transform: translateY(2px); box-shadow: 0 2px 0 #E0E6F0; }
         
         .b-avatar { width: 45px; height: 45px; background: #FFD166; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 22px; color: white; margin-right: 15px; position: relative; }
-        
         .red-dot { width: 14px; height: 14px; background: #FF4757; border: 2px solid white; border-radius: 50%; position: absolute; top: -5px; right: -5px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 20; }
         .badge-new { background: #FF4757; color: white; font-size: 10px; font-weight: 800; padding: 4px 8px; border-radius: 10px; margin-left: auto; }
 
@@ -98,9 +86,11 @@
         .b-name { font-weight: 700; color: var(--deep-purple); font-size: 16px; }
         .b-status { font-size: 13px; color: #888; font-weight: 600; }
 
-        .sos-btn { position: absolute; bottom: 25px; right: 20px; width: 65px; height: 65px; background: #FF4757; border-bottom: 5px solid #C41E3A; border-radius: 22px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 900; font-size: 16px; box-shadow: 0 10px 20px rgba(255, 71, 87, 0.3); z-index: 50; cursor: pointer; }
+        /* SOS BUTTON */
+        .sos-btn { position: absolute; bottom: 25px; right: 20px; width: 65px; height: 65px; background: #FF4757; border-bottom: 5px solid #C41E3A; border-radius: 22px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 900; font-size: 16px; box-shadow: 0 10px 20px rgba(255, 71, 87, 0.3); z-index: 2000; cursor: pointer; }
         .sos-btn:active { transform: translateY(4px); border-bottom: 2px solid #C41E3A; }
 
+        /* CHAT */
         .chat-feed { flex: 1; padding: 20px; overflow-y: scroll; display: flex; flex-direction: column; gap: 15px; }
         .msg-bubble { max-width: 75%; padding: 12px 16px; border-radius: 20px; font-weight: 600; font-size: 16px; line-height: 1.4; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .msg.me { background: #4FACFE; color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
@@ -157,7 +147,6 @@
                     <button id="btn-login-parent" class="btn-3d" style="background: linear-gradient(to bottom, #6C5CE7, #a29bfe);" onclick="app.login()">Login</button>
                     <div class="text-link" onclick="app.toggleInviteMode()">Have an invite code?</div>
                 </div>
-                
                 <div id="parent-invite" class="hidden">
                     <input id="invite-code" class="slot-input" placeholder="Enter Code (e.g. FAM-1234)">
                     <button id="btn-join" class="btn-3d" style="background: linear-gradient(to bottom, #00b894, #55efc4);" onclick="app.joinFamily()">Join Family</button>
@@ -178,15 +167,16 @@
                 <i id="verify-icon" class="fas fa-exclamation-circle"></i><span id="verify-text">Identity Unverified (Tap to Fix)</span>
             </div>
             
-            <div style="display:flex; gap:10px; margin-bottom:20px;">
-                <div class="bubble-card" style="flex:1; justify-content:center; flex-direction:column; text-align:center; padding:20px;" onclick="app.openGuardianChat()">
-                    <div class="b-avatar" style="margin:0 auto 10px; background:#6C5CE7;"><i class="fas fa-comments"></i></div>
-                    <div class="b-name" style="font-size:14px;">Co-Parent Chat</div>
-                </div>
-                <div class="bubble-card" style="flex:1; justify-content:center; flex-direction:column; text-align:center; padding:20px;" onclick="app.generateInvite()">
-                    <div class="b-avatar" style="margin:0 auto 10px; background:#00b894;"><i class="fas fa-user-plus"></i></div>
-                    <div class="b-name" style="font-size:14px;">Invite Spouse</div>
-                </div>
+            <div class="bubble-card" onclick="app.generateInvite()">
+                <div class="b-avatar" style="background:#0984e3; color:white;"><i class="fas fa-users"></i></div>
+                <div class="b-info"><div class="b-name">Guardians</div><div class="b-status">Manage Co-Parents</div></div>
+                <i class="fas fa-chevron-right chevron"></i>
+            </div>
+
+            <div class="bubble-card" onclick="app.openChat('GuardianRoom', 'Co-Parent Chat')">
+                <div class="b-avatar" style="background:#6C5CE7; color:white;"><i class="fas fa-comments"></i></div>
+                <div class="b-info"><div class="b-name">Co-Parent Chat</div><div class="b-status">Private</div></div>
+                <i class="fas fa-chevron-right chevron"></i>
             </div>
 
             <h4 style="margin: 20px 0 10px 5px; color:#a4b0be; text-transform:uppercase; font-size:12px;">Your Kids</h4>
@@ -371,12 +361,18 @@
         },
 
         back: () => {
-             if(isParent && currentChat) {
-                 // Check if it was guardian chat or child chat
+             // FIX: Simplified back logic
+             if(currentChat) {
                  if(currentChat === 'GuardianRoom') app.nav('screen-parent');
-                 else app.nav('screen-child-detail');
+                 else if(isParent) app.nav('screen-child-detail');
+                 else app.nav('screen-child-home');
+                 currentChat = null; // Clear chat state
+             } else if(selectedChildId) {
+                 app.nav('screen-parent');
+                 selectedChildId = null;
+             } else {
+                 app.nav(isParent ? 'screen-parent' : 'screen-child-home');
              }
-             else app.nav(isParent ? 'screen-parent' : 'screen-child-home');
         },
 
         addChild: () => {
@@ -430,10 +426,6 @@
             }
         },
 
-        openGuardianChat: () => {
-            app.openChat('GuardianRoom', 'Co-Parent Chat');
-        },
-
         renderActivity: (child) => {
              const list = document.getElementById('activity-log');
              list.innerHTML = '';
@@ -455,7 +447,6 @@
             if(id === 'ParentUser') document.getElementById('child-badge-parent').classList.add('hidden');
             const feed = document.getElementById('chat-feed');
             feed.innerHTML = '';
-            
             chatHistory.forEach(msg => {
                 // Guardian Room Logic
                 if (id === 'GuardianRoom') {
@@ -609,10 +600,9 @@
         socket.on('chat message', (msg) => {
             chatHistory.push(msg);
             
-            // PARENT NOTIFICATION LOGIC
-            // 1. Child to Parent
             if (msg.sender !== currentUser && msg.recipient === currentUser) {
                 if(msg.sender !== 'AI_Tutor') app.showBanner("New Message", `From: ${msg.sender}`);
+
                 if (document.getElementById('screen-chat').classList.contains('hidden')) {
                     const child = children.find(c => c.username === msg.sender);
                     if(child) {
@@ -620,14 +610,10 @@
                         app.renderChildrenList();
                         app.updateDetailBadge();
                     }
-                    if(msg.sender === 'ParentUser') document.getElementById('child-badge-parent').classList.remove('hidden');
+                    if(msg.sender === 'ParentUser') {
+                        document.getElementById('child-badge-parent').classList.remove('hidden');
+                    }
                 }
-            }
-            // 2. Guardian Chat Notification
-            if (msg.recipient === 'GuardianRoom' && currentUser === 'ParentUser' && msg.sender !== 'ParentUser') {
-                 if(document.getElementById('screen-chat').classList.contains('hidden')) {
-                     app.showBanner("Co-Parent", msg.text);
-                 }
             }
 
             if(!document.getElementById('screen-chat').classList.contains('hidden')) {
