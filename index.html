@@ -24,9 +24,7 @@
             margin: 0; font-family: 'Fredoka', sans-serif; 
             background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
             display: flex; justify-content: center; align-items: center;
-            min-height: 100vh; 
-            padding: 20px;     
-            box-sizing: border-box;
+            min-height: 100vh; padding: 20px; box-sizing: border-box;
         }
 
         .mobile-frame { 
@@ -73,18 +71,9 @@
         .bubble-card { background: white; padding: 15px; border-radius: 20px; margin-bottom: 15px; display: flex; align-items: center; box-shadow: 0 4px 0 #E0E6F0; cursor: pointer; transition: 0.1s; border: 1px solid #F0F4F8; }
         .bubble-card:active { transform: translateY(2px); box-shadow: 0 2px 0 #E0E6F0; }
         
-        /* AVATAR & NOTIFICATIONS */
         .b-avatar { width: 45px; height: 45px; background: #FFD166; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 22px; color: white; margin-right: 15px; position: relative; }
-        
-        /* THE RED DOT */
-        .red-dot {
-            width: 14px; height: 14px; background: #FF4757; border: 2px solid white; border-radius: 50%;
-            position: absolute; top: -5px; right: -5px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        }
-        /* THE NEW BADGE */
-        .badge-new {
-            background: #FF4757; color: white; font-size: 10px; font-weight: 800; padding: 4px 8px; border-radius: 10px; margin-left: auto;
-        }
+        .red-dot { width: 14px; height: 14px; background: #FF4757; border: 2px solid white; border-radius: 50%; position: absolute; top: -5px; right: -5px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .badge-new { background: #FF4757; color: white; font-size: 10px; font-weight: 800; padding: 4px 8px; border-radius: 10px; margin-left: auto; }
 
         .b-info { flex: 1; }
         .b-name { font-weight: 700; color: var(--deep-purple); font-size: 16px; }
@@ -97,7 +86,6 @@
         .msg-bubble { max-width: 75%; padding: 12px 16px; border-radius: 20px; font-weight: 600; font-size: 16px; line-height: 1.4; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .msg.me { background: #4FACFE; color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
         .msg.them { background: white; color: var(--text-dark); align-self: flex-start; border-bottom-left-radius: 4px; }
-        
         .chat-img { width: 100%; border-radius: 12px; margin-top: 5px; }
 
         .input-bar { background: white; padding: 15px; border-top: 1px solid #E0E6F0; display: flex; gap: 10px; align-items: center; }
@@ -107,6 +95,19 @@
         .setting-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .time-box { background: #F0F4F8; padding: 10px; border-radius: 15px; display: flex; align-items: center; gap: 10px; font-weight: bold; color: var(--text-light); }
         input[type="time"] { border: none; background: transparent; font-family: 'Fredoka'; font-weight: bold; font-size: 16px; color: var(--deep-purple); }
+
+        /* VERIFICATION BADGES */
+        .status-box { padding:15px; border-radius:15px; font-weight:700; font-size:14px; margin-bottom:20px; display:flex; align-items:center; gap:10px; cursor: pointer; transition: 0.1s; }
+        .status-unverified { background:#FEE2E2; color:#DC2626; border: 1px solid #DC2626; }
+        .status-verified { background:#E3FCEF; color:#00B894; border: 1px solid #00B894; cursor: default; }
+        .status-box:active { transform: scale(0.98); }
+
+        /* SCANNING ANIMATION */
+        .scan-line {
+            width: 100%; height: 4px; background: #00F2FE; position: absolute; top: 20%; 
+            animation: scan 2s infinite alternate; box-shadow: 0 0 10px #00F2FE;
+        }
+        @keyframes scan { from { top: 10%; } to { top: 90%; } }
     </style>
 </head>
 <body>
@@ -141,9 +142,12 @@
             <button class="icon-btn" onclick="app.addChild()"><i class="fas fa-plus"></i></button>
         </div>
         <div class="content-area">
-            <div style="background:#E3FCEF; color:#00B894; padding:15px; border-radius:15px; font-weight:700; font-size:14px; margin-bottom:20px; display:flex; align-items:center; gap:10px;">
-                <i class="fas fa-shield-check"></i> ID Verified Parent
+            
+            <div id="verify-box" class="status-box status-unverified" onclick="app.startVerification()">
+                <i id="verify-icon" class="fas fa-exclamation-circle"></i> 
+                <span id="verify-text">Identity Unverified (Tap to Fix)</span>
             </div>
+
             <h4 style="margin: 0 0 10px 5px; color:#a4b0be; text-transform:uppercase; font-size:12px;">Your Kids</h4>
             <div id="children-list"></div>
         </div>
@@ -192,7 +196,6 @@
                     <div class="b-status" style="color:#6C5CE7; font-weight:800;">Homework Helper</div>
                 </div>
             </div>
-
             <div class="bubble-card" onclick="app.openChat('ParentUser', 'Mom & Dad')">
                 <div class="b-avatar" style="background:#0984e3;"><i class="fas fa-user-shield"></i></div>
                 <div class="b-info">
@@ -233,6 +236,14 @@
         <button class="btn-3d" style="background:white; color:#FF7675; width:60%; margin-top:40px;" onclick="app.closeOverlays()">I'm Safe</button>
     </div>
 
+    <div id="overlay-scan" class="hidden" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:500; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+        <div style="width:250px; height:350px; border:2px solid white; border-radius:20px; position:relative; overflow:hidden; background:rgba(255,255,255,0.1);">
+            <div class="scan-line"></div>
+            <div style="color:white; text-align:center; margin-top:150px; font-weight:bold;">SCANNING ID...</div>
+        </div>
+        <p style="color:#aaa; margin-top:20px;">Align document in frame</p>
+    </div>
+
     <div id="screen-settings" class="screen hidden">
         <div class="top-bar">
             <button class="icon-btn" onclick="app.nav('screen-child-detail')"><i class="fas fa-times"></i></button>
@@ -264,6 +275,7 @@
     let chatHistory = [];
     let children = [];
     let selectedChildId = null;
+    let parentVerified = false; // Local state for prototype
 
     const app = {
         setRole: (role) => {
@@ -310,12 +322,31 @@
             if(name && user) socket.emit('register child', { name, username: user });
         },
 
+        // --- VERIFICATION LOGIC ---
+        startVerification: () => {
+            if(parentVerified) return; // Already done
+            document.getElementById('overlay-scan').classList.remove('hidden');
+            socket.emit('verify identity'); // Tell server to start simulation
+        },
+
+        updateVerifyUI: () => {
+            const box = document.getElementById('verify-box');
+            const icon = document.getElementById('verify-icon');
+            const text = document.getElementById('verify-text');
+            
+            box.className = "status-box status-verified";
+            icon.className = "fas fa-check-circle";
+            text.innerText = "Identity Verified";
+            document.getElementById('overlay-scan').classList.add('hidden');
+        },
+
+        // --- NAVIGATION ---
         openChildDetail: (id) => {
             selectedChildId = id;
             const child = children.find(c => c.id === id);
             document.getElementById('detail-title').innerText = child.name;
             app.renderActivity(child);
-            app.updateDetailBadge(); // Check for dot
+            app.updateDetailBadge();
             app.nav('screen-child-detail');
         },
 
@@ -331,10 +362,9 @@
         openParentChat: () => {
             const child = children.find(c => c.id === selectedChildId);
             if(child) {
-                // Clear the unread flag locally
                 child.unread = false; 
-                app.updateDetailBadge(); // Hide badge
-                app.renderChildrenList(); // Remove dashboard dot
+                app.updateDetailBadge();
+                app.renderChildrenList();
                 app.openChat(child.username, child.name);
             }
         },
@@ -477,13 +507,9 @@
     };
 
     socket.on('update children list', (data) => {
-        // We preserve local unread state if possible, or reset it.
-        // For simplicity in this version, we replace data but re-map local flags if needed.
-        // But the simplest is to just accept the server list.
         const oldChildren = children;
         children = data;
         
-        // Restore local unread flags
         children.forEach(newChild => {
             const old = oldChildren.find(c => c.id === newChild.id);
             if(old && old.unread) newChild.unread = true;
@@ -497,20 +523,23 @@
         }
     });
 
+    // Verification Success
+    socket.on('verification complete', () => {
+        parentVerified = true;
+        app.updateVerifyUI();
+        alert("Success! Your identity has been verified.");
+    });
+
     socket.on('chat message', (msg) => {
         chatHistory.push(msg);
         
-        // VISUAL NOTIFICATION LOGIC
         if (msg.sender !== currentUser && msg.recipient === currentUser) {
-            // It's a message for ME.
-            // If I am NOT in the chat screen, mark as unread.
             if (document.getElementById('screen-chat').classList.contains('hidden')) {
-                // Find sender in my children list
                 const child = children.find(c => c.username === msg.sender);
                 if(child) {
                     child.unread = true;
-                    app.renderChildrenList(); // Refresh dashboard
-                    app.updateDetailBadge();  // Refresh detail view if open
+                    app.renderChildrenList();
+                    app.updateDetailBadge();
                 }
             }
         }
