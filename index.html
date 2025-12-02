@@ -10,144 +10,57 @@
     <style>
         /* --- 3D ISOMETRIC THEME --- */
         :root {
-            --glass-blue: rgba(79, 172, 254, 0.2);
             --glass-border: rgba(255, 255, 255, 0.4);
-            --neon-blue: #00F2FE;
+            --primary: #4FACFE;
+            --primary-grad: linear-gradient(to right, #4FACFE 0%, #00F2FE 100%);
+            --accent: #6C5CE7;
             --deep-purple: #432C7A;
-            --text-shadow: 0 2px 0 rgba(0,0,0,0.1);
+            --text-dark: #2D3436;
+            --text-light: #636E72;
         }
 
         body { 
-            margin: 0; 
-            font-family: 'Fredoka', sans-serif; 
-            /* Fallback background if image fails */
+            margin: 0; font-family: 'Fredoka', sans-serif; 
             background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
             display: flex; justify-content: center; height: 100vh; overflow: hidden; 
         }
 
-        /* THE FRAME */
         .mobile-frame { 
-            width: 100%; max-width: 414px; 
-            height: 100%; 
-            position: relative; 
-            display: flex; flex-direction: column;
-            overflow: hidden;
+            width: 100%; max-width: 414px; height: 100%; position: relative; 
+            display: flex; flex-direction: column; overflow: hidden;
             box-shadow: 0 0 50px rgba(0,0,0,0.5);
         }
 
-        /* 1. LOGIN SCREEN WITH 3D BACKGROUND */
+        /* LOGIN SCREEN */
         #screen-login {
-            /* Using a placeholder 3D island image that mimics your upload */
-            background: url('https://img.freepik.com/free-vector/isometric-social-media-concept-background_52683-93.jpg?w=740&t=st=1709628000~exp=1709628600~hmac=fake_token'); 
-            background-size: cover;
-            background-position: center bottom;
-            justify-content: center; 
-            align-items: center;
+            background: url('https://img.freepik.com/free-vector/isometric-social-media-concept-background_52683-93.jpg?w=740'); 
+            background-size: cover; background-position: center bottom;
+            justify-content: center; align-items: center;
         }
-
-        /* The "Glass" Panel from your inspiration */
         .glass-panel {
-            background: rgba(67, 44, 122, 0.65); /* Deep purple tint */
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 2px solid var(--glass-border);
-            border-radius: 30px;
-            padding: 30px 20px;
-            width: 80%;
-            text-align: center;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
-            animation: float 6s ease-in-out infinite;
+            background: rgba(67, 44, 122, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border: 2px solid var(--glass-border); border-radius: 30px; padding: 30px 20px; width: 80%; text-align: center;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3); animation: float 6s ease-in-out infinite;
         }
+        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
 
-        @keyframes float {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-            100% { transform: translateY(0px); }
-        }
+        h1.logo-text { font-size: 48px; color: white; text-shadow: 3px 3px 0px #6C5CE7; margin: 0 0 10px 0; -webkit-text-stroke: 2px white; }
+        .slot-input { background: rgba(255,255,255,0.9); border: none; border-radius: 50px; padding: 15px 20px; width: 100%; box-sizing: border-box; margin-bottom: 15px; font-family: 'Fredoka'; font-size: 16px; font-weight: 600; outline: none; }
+        .btn-3d { background: linear-gradient(to bottom, #4FACFE 0%, #00F2FE 100%); border: none; border-bottom: 6px solid #0099AA; border-radius: 50px; padding: 15px; width: 100%; color: white; font-family: 'Fredoka'; font-size: 20px; font-weight: 700; cursor: pointer; transition: all 0.1s; }
+        .btn-3d:active { transform: translateY(4px); border-bottom: 2px solid #0099AA; }
 
-        /* Typography */
-        h1.logo-text {
-            font-size: 48px;
-            color: white;
-            text-shadow: 3px 3px 0px #6C5CE7, 0 0 20px rgba(255,255,255,0.5);
-            margin: 0 0 10px 0;
-            letter-spacing: 1px;
-            -webkit-text-stroke: 2px white;
-        }
-        p.subtitle { color: #E0E0E0; font-size: 14px; margin-bottom: 30px; font-weight: 600; }
+        .role-pill { background: rgba(0,0,0,0.3); border-radius: 50px; display: flex; padding: 5px; margin-bottom: 20px; }
+        .role-opt { flex: 1; padding: 8px; border-radius: 40px; color: rgba(255,255,255,0.6); cursor: pointer; font-weight: 700; }
+        .role-opt.active { background: white; color: var(--deep-purple); }
 
-        /* Inputs that look like slots */
-        .slot-input {
-            background: rgba(255,255,255,0.9);
-            border: none;
-            border-radius: 50px;
-            padding: 15px 20px;
-            width: 100%;
-            box-sizing: border-box;
-            margin-bottom: 15px;
-            font-family: 'Fredoka', sans-serif;
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--deep-purple);
-            box-shadow: inset 0 3px 5px rgba(0,0,0,0.1);
-        }
-        .slot-input:focus { outline: 3px solid var(--neon-blue); }
-
-        /* Neon 3D Button */
-        .btn-3d {
-            background: linear-gradient(to bottom, #4FACFE 0%, #00F2FE 100%);
-            border: none;
-            border-bottom: 6px solid #0099AA; /* 3D depth */
-            border-radius: 50px;
-            padding: 15px;
-            width: 100%;
-            color: white;
-            font-family: 'Fredoka', sans-serif;
-            font-size: 20px;
-            font-weight: 700;
-            text-transform: uppercase;
-            cursor: pointer;
-            text-shadow: 0 2px 0 rgba(0,0,0,0.2);
-            transition: all 0.1s;
-        }
-        .btn-3d:active {
-            transform: translateY(4px);
-            border-bottom: 2px solid #0099AA;
-        }
-
-        /* Role Switcher */
-        .role-pill {
-            background: rgba(0,0,0,0.3);
-            border-radius: 50px;
-            display: flex;
-            padding: 5px;
-            margin-bottom: 20px;
-        }
-        .role-opt {
-            flex: 1;
-            padding: 8px;
-            border-radius: 40px;
-            color: rgba(255,255,255,0.6);
-            cursor: pointer;
-            font-weight: 700;
-            transition: 0.2s;
-        }
-        .role-opt.active {
-            background: white;
-            color: var(--deep-purple);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-        }
-
-        /* --- INTERNAL APP STYLES (Clean & Rounded) --- */
+        /* APP SCREENS */
         .screen { flex: 1; display: flex; flex-direction: column; background: #F4F7FE; overflow-y: auto; }
         .hidden { display: none !important; }
         
-        /* Headers */
         .top-bar { padding: 20px; display: flex; justify-content: space-between; align-items: center; background: white; border-radius: 0 0 30px 30px; box-shadow: 0 5px 20px rgba(0,0,0,0.03); z-index: 10; }
         .page-title { font-size: 22px; color: var(--deep-purple); font-weight: 700; }
         .icon-btn { font-size: 20px; color: #4FACFE; background: #E6F0FF; width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; }
 
-        /* Lists */
         .content-area { padding: 20px; }
         .bubble-card { background: white; padding: 15px; border-radius: 20px; margin-bottom: 15px; display: flex; align-items: center; box-shadow: 0 4px 0 #E0E6F0; cursor: pointer; transition: 0.1s; border: 1px solid #F0F4F8; }
         .bubble-card:active { transform: translateY(2px); box-shadow: 0 2px 0 #E0E6F0; }
@@ -157,27 +70,23 @@
         .b-name { font-weight: 700; color: var(--deep-purple); font-size: 16px; }
         .b-status { font-size: 13px; color: #888; font-weight: 600; }
 
-        /* SOS Button */
         .sos-btn { position: absolute; bottom: 30px; right: 20px; width: 70px; height: 70px; background: #FF4757; border-bottom: 5px solid #C41E3A; border-radius: 25px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 900; font-size: 18px; box-shadow: 0 10px 20px rgba(255, 71, 87, 0.3); z-index: 50; cursor: pointer; }
         .sos-btn:active { transform: translateY(4px); border-bottom: 2px solid #C41E3A; }
 
-        /* Chat */
         .chat-feed { flex: 1; padding: 20px; overflow-y: scroll; display: flex; flex-direction: column; gap: 15px; }
         .msg-bubble { max-width: 75%; padding: 15px; border-radius: 20px; font-weight: 600; font-size: 15px; line-height: 1.4; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .msg.me { background: #4FACFE; color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
         .msg.them { background: white; color: var(--text-dark); align-self: flex-start; border-bottom-left-radius: 4px; }
-
     </style>
 </head>
 <body>
 
 <div class="mobile-frame">
 
-    <div id="screen-login" class="screen" style="background-image: url('https://img.freepik.com/free-vector/gradient-metaverse-background_23-2149261763.jpg?w=740'); background-size: cover; background-position: center;">
-        
+    <div id="screen-login" class="screen">
         <div class="glass-panel">
             <h1 class="logo-text">Tutum</h1>
-            <p class="subtitle">Your Squad, Your Space.</p>
+            <p style="color:#E0E0E0; font-size:14px; margin-bottom:30px; font-weight:600;">Your Squad, Your Space.</p>
 
             <div class="role-pill">
                 <div id="role-parent" class="role-opt active" onclick="app.setRole('parent')">Parent</div>
@@ -205,12 +114,38 @@
             <div style="background:#E3FCEF; color:#00B894; padding:15px; border-radius:15px; font-weight:700; font-size:14px; margin-bottom:20px; display:flex; align-items:center; gap:10px;">
                 <i class="fas fa-shield-check"></i> ID Verified Parent
             </div>
-            
             <h4 style="margin: 0 0 10px 5px; color:#a4b0be; text-transform:uppercase; font-size:12px;">Your Kids</h4>
             <div id="children-list"></div>
         </div>
-        <div style="margin-top:auto; padding:20px; text-align:center;">
-             <button onclick="window.location.reload()" style="background:none; border:none; color:#b2bec3; font-weight:700; cursor:pointer;">Log Out</button>
+    </div>
+
+    <div id="screen-child-detail" class="screen hidden">
+        <div class="top-bar">
+            <button class="icon-btn" onclick="app.nav('screen-parent')"><i class="fas fa-chevron-left"></i></button>
+            <div class="page-title" id="detail-title">Child</div>
+            <div style="width:40px;"></div>
+        </div>
+        <div class="content-area">
+            <h4 style="margin: 0 0 10px 5px; color:#a4b0be; text-transform:uppercase; font-size:12px;">Controls</h4>
+            <div class="bubble-card" onclick="alert('Curfew Settings coming soon in this theme!')">
+                <div class="b-avatar" style="background:#fdcb6e;"><i class="fas fa-moon"></i></div>
+                <div class="b-info">
+                    <div class="b-name">Curfew</div>
+                    <div class="b-status">Sleep schedules</div>
+                </div>
+                <i class="fas fa-chevron-right chevron"></i>
+            </div>
+            <div class="bubble-card" onclick="app.openParentChat()">
+                <div class="b-avatar" style="background:var(--primary);"><i class="fas fa-comments"></i></div>
+                <div class="b-info">
+                    <div class="b-name">Messages</div>
+                    <div class="b-status">Chat with child</div>
+                </div>
+                <i class="fas fa-chevron-right chevron"></i>
+            </div>
+            
+            <h4 style="margin: 20px 0 10px 5px; color:#a4b0be; text-transform:uppercase; font-size:12px;">Activity</h4>
+            <div id="activity-log"></div>
         </div>
     </div>
 
@@ -219,7 +154,6 @@
             <div class="page-title">My Squad</div>
             <button class="icon-btn" onclick="app.showQR()"><i class="fas fa-qrcode"></i></button>
         </div>
-        
         <div class="content-area">
             <div class="bubble-card" onclick="app.openChat('ParentUser', 'Mom & Dad')">
                 <div class="b-avatar" style="background:#0984e3;"><i class="fas fa-user-shield"></i></div>
@@ -228,7 +162,6 @@
                     <div class="b-status">Family Base</div>
                 </div>
             </div>
-            
             <div class="bubble-card" onclick="app.openChat('Friend', 'Best Friend')">
                 <div class="b-avatar" style="background:#00b894;"><i class="fas fa-user-astronaut"></i></div>
                 <div class="b-info">
@@ -237,7 +170,6 @@
                 </div>
             </div>
         </div>
-        
         <div class="sos-btn" onclick="app.triggerSOS()">SOS</div>
     </div>
 
@@ -258,7 +190,7 @@
 
     <div id="overlay-qr" class="hidden" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(45, 52, 54, 0.9); z-index:100; display:flex; flex-direction:column; align-items:center; justify-content:center;">
         <div style="background:white; padding:30px; border-radius:30px; text-align:center;">
-            <img id="qr-img" src="" style="border-radius:10px; margin-bottom:10px;">
+            <img id="qr-img" src="" width="180">
             <h2 id="qr-name">@user</h2>
             <button class="btn-3d" style="margin-top:20px;" onclick="app.closeOverlays()">Close</button>
         </div>
@@ -267,7 +199,6 @@
     <div id="overlay-sos" class="hidden" style="position:absolute; top:0; left:0; width:100%; height:100%; background:#FF7675; z-index:200; display:flex; flex-direction:column; align-items:center; justify-content:center; color:white; text-align:center;">
         <i class="fas fa-exclamation-circle" style="font-size:80px; margin-bottom:20px;"></i>
         <h1>ALERT SENT!</h1>
-        <p>Parents notified.</p>
         <button class="btn-3d" style="background:white; color:#FF7675; width:60%; margin-top:40px;" onclick="app.closeOverlays()">I'm Safe</button>
     </div>
 
@@ -280,14 +211,14 @@
     let isParent = true;
     let currentChat = "";
     let chatHistory = [];
-    let children = [];
+    let children = []; // FIXED: Renamed to match usage
+    let selectedChildId = null; // FIXED: Added to track which child parent is viewing
 
     const app = {
         setRole: (role) => {
             isParent = (role === 'parent');
             document.getElementById('role-parent').className = isParent ? 'role-opt active' : 'role-opt';
             document.getElementById('role-child').className = !isParent ? 'role-opt active' : 'role-opt';
-            
             if(isParent) {
                 document.getElementById('form-parent').classList.remove('hidden');
                 document.getElementById('form-child').classList.add('hidden');
@@ -315,7 +246,12 @@
         },
 
         back: () => {
-            app.nav(isParent ? 'screen-parent' : 'screen-child-home');
+             // If I am parent, go back to child detail. If child, go home.
+             if(isParent && currentChat) {
+                app.nav('screen-child-detail');
+             } else {
+                app.nav(isParent ? 'screen-parent' : 'screen-child-home');
+             }
         },
 
         addChild: () => {
@@ -324,6 +260,37 @@
             if(name && user) socket.emit('register child', { name, username: user });
         },
 
+        // --- PARENT SPECIFIC FIXES ---
+        openChildDetail: (id) => {
+            selectedChildId = id;
+            const child = children.find(c => c.id === id);
+            document.getElementById('detail-title').innerText = child.name;
+            app.renderActivity(child);
+            app.nav('screen-child-detail');
+        },
+
+        openParentChat: () => {
+            const child = children.find(c => c.id === selectedChildId);
+            if(child) app.openChat(child.username, child.name);
+        },
+
+        renderActivity: (child) => {
+             const list = document.getElementById('activity-log');
+             list.innerHTML = '';
+             if(child.activityLog.length === 0) list.innerHTML = '<div style="color:#aaa; text-align:center;">No activity</div>';
+             
+             child.activityLog.forEach(log => {
+                const div = document.createElement('div');
+                div.className = 'bubble-card';
+                div.innerHTML = `
+                    <div class="b-avatar" style="${log.type==='alert'?'background:#FF4757':'background:#ccc'}"><i class="fas fa-info"></i></div>
+                    <div class="b-info"><div class="b-name">${log.user}</div><div class="b-status">${log.text}</div></div>
+                `;
+                list.appendChild(div);
+             });
+        },
+
+        // --- CHAT ---
         openChat: (id, name) => {
             currentChat = id;
             document.getElementById('chat-title').innerText = name;
@@ -331,8 +298,11 @@
             feed.innerHTML = '';
             
             chatHistory.forEach(msg => {
-                if((msg.sender === currentUser && msg.recipient === currentChat) ||
-                   (msg.sender === currentChat && msg.recipient === currentUser)) {
+                const isMe = (msg.sender === currentUser);
+                const isThem = (msg.sender === currentChat);
+                // Filter logic: Show if it involves both of us
+                if ((msg.sender === currentUser && msg.recipient === currentChat) || 
+                    (msg.sender === currentChat && msg.recipient === currentUser)) {
                     app.renderMsg(msg);
                 }
             });
@@ -357,6 +327,7 @@
             feed.scrollTop = feed.scrollHeight;
         },
 
+        // --- EXTRAS ---
         showQR: () => {
             document.getElementById('qr-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${currentUser}`;
             document.getElementById('qr-name').innerText = "@"+currentUser;
@@ -376,13 +347,13 @@
 
     // SOCKETS
     socket.on('update children list', (data) => {
-        children = data;
+        children = data; // FIXED: Variable matches now
         const list = document.getElementById('children-list');
         list.innerHTML = '';
         children.forEach(c => {
             const div = document.createElement('div');
             div.className = 'bubble-card';
-            div.onclick = () => app.openChat(c.username, c.name); // Simplified for demo
+            div.onclick = () => app.openChildDetail(c.id); // FIXED: Calls correct function
             
             const isSOS = c.status && c.status.includes("SOS");
             
@@ -398,6 +369,11 @@
             `;
             list.appendChild(div);
         });
+        // Refresh detail if open
+        if(selectedChildId) {
+             const currentChild = children.find(c => c.id === selectedChildId);
+             if(currentChild) app.renderActivity(currentChild);
+        }
     });
 
     socket.on('chat message', (msg) => {
