@@ -18,6 +18,8 @@ let children = [
         name: "Teen User",
         status: "Online",
         verified: true,
+        // NEW: We simulate that the parent has set this child's education level
+        education: { grade: "10", curriculum: "CAPS (South Africa)" },
         curfew: { enabled: true, start: "21:00", end: "06:00" },
         activityLog: []
     }
@@ -41,16 +43,14 @@ io.on('connection', (socket) => {
 
     socket.on('join family', (code) => {
         if (activeInvites.includes(code)) {
-            // FIX: Ensure Co-Parent uses the same ID as the main parent for chat to work
             socket.emit('login success', { username: "ParentUser", role: "parent" });
         } else {
             socket.emit('login failed', "Invalid or expired code.");
         }
     });
 
-    // 2. PARENT LOGIN (FIXED USERNAME)
+    // 2. PARENT LOGIN
     socket.on('parent login', () => {
-        // FIX: Must match what the child sends to ('ParentUser')
         socket.emit('login success', { username: "ParentUser", role: "parent" });
     });
 
@@ -66,6 +66,7 @@ io.on('connection', (socket) => {
             name: data.name,
             status: "Offline",
             verified: false,
+            education: { grade: "10", curriculum: "Standard" }, // Default
             curfew: { enabled: true, start: "21:00", end: "06:00" },
             activityLog: []
         };
@@ -104,7 +105,6 @@ io.on('connection', (socket) => {
                 text: "Triggered the Panic Button",
                 time: "Just now"
             });
-            // Send alert to parent chat
             io.emit('chat message', { 
                 sender: username, 
                 recipient: "ParentUser", 
@@ -120,28 +120,46 @@ io.on('connection', (socket) => {
         io.emit('chat message', msg);
     });
 
-    // 6. AI TUTOR
+    // --- 6. AI TUTOR (SYLLABUS AWARE) ---
     socket.on('tutor message', (msg) => {
+        // Echo user message
         socket.emit('chat message', { sender: msg.sender, recipient: 'AI_Tutor', text: msg.text });
+        
         setTimeout(() => {
             const lower = msg.text.toLowerCase();
-            let reply = "Hello! I am Tutor Tom.";
-            
-            // Math Logic
+            let reply = "";
+
+            // A. MATH (Calculation)
             if (/[0-9]/.test(lower) && /[\+\-\*x\/]/.test(lower)) {
                 try {
                     let cleanMath = lower.replace(/[^0-9\+\-\*\/\.x]/g, '').replace(/x/g, '*');
                     let result = eval(cleanMath); 
-                    reply = `The answer is ${result}.`;
-                } catch (e) {
-                    reply = "I couldn't calculate that.";
-                }
-            } else if (lower.includes("math") || lower.includes("science")) {
-                reply = "I can help with that subject.";
+                    reply = `Calculated Answer: ${result}. Remember to show your working out!`;
+                } catch (e) { reply = "I couldn't calculate that."; }
+            }
+            // B. HISTORY (Syllabus Check)
+            else if (lower.includes("history") || lower.includes("war") || lower.includes("mandela") || lower.includes("apartheid")) {
+                reply = "Based on the Grade 10 History syllabus, we cover The World around 1600, Expansion and Conquest, and the French Revolution. Which topic are you working on?";
+            }
+            // C. GEOGRAPHY
+            else if (lower.includes("geography") || lower.includes("map") || lower.includes("climate") || lower.includes("water")) {
+                reply = "For Geography (CAPS Curriculum), you should be focusing on Climatology or Geomorphology. I can help with mapwork calculations if you need.";
+            }
+            // D. SCIENCE / BIO
+            else if (lower.includes("science") || lower.includes("bio") || lower.includes("cell") || lower.includes("physics")) {
+                reply = "In Physical Sciences we cover Mechanics and Waves. In Life Sciences we cover the Biosphere and Cells. What is your specific question?";
+            }
+            // E. GUARDRAILS (The "No" List)
+            else if (lower.includes("game") || lower.includes("tiktok") || lower.includes("youtube") || lower.includes("movie")) {
+                reply = "My programming restricts me to Educational Support only. I cannot discuss entertainment. Please return to your homework.";
+            }
+            // F. GREETING
+            else {
+                reply = "Hello! I am Tutor Tom. I am synced with your local school curriculum (Grade 10). Ask me about Math, Science, History, or Geography.";
             }
             
             socket.emit('chat message', { sender: 'AI_Tutor', recipient: msg.sender, text: reply });
-        }, 800);
+        }, 1000);
     });
 
     socket.on('verify identity', () => {
