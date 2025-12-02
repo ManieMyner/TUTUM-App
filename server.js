@@ -91,10 +91,8 @@ io.on('connection', (socket) => {
         }
     });
 
-    // --- CHAT LOGIC (UPDATED FOR IMAGES) ---
+    // --- STANDARD CHAT ---
     socket.on('chat message', (msg) => {
-        
-        // 1. If it has text, check for bad words
         if (msg.text) {
             let isBad = false;
             for (let word of bannedWords) {
@@ -105,12 +103,39 @@ io.on('connection', (socket) => {
             }
             if (isBad) {
                 socket.emit('error message', "Message blocked: Language.");
-                return; // Stop here
+                return; 
             }
         }
-
-        // 2. If safe (or just an image), send it
         io.emit('chat message', msg);
+    });
+
+    // --- AI TUTOR LOGIC (NEW) ---
+    socket.on('tutor message', (msg) => {
+        // 1. Echo the user's message back to them (so they see what they sent)
+        socket.emit('chat message', { sender: msg.sender, recipient: 'AI_Tutor', text: msg.text });
+
+        // 2. Wait 1 second to simulate "Thinking"
+        setTimeout(() => {
+            const lower = msg.text.toLowerCase();
+            let reply = "";
+
+            // HOMEWORK GUARDRAILS
+            if (lower.includes("math") || lower.includes("science") || lower.includes("history") || lower.includes("study") || lower.includes(" homework")) {
+                reply = "I can definitely help with that subject! What specific problem are you trying to solve?";
+            } 
+            else if (lower.includes("game") || lower.includes("movie") || lower.includes("party") || lower.includes("friend")) {
+                reply = "I am strictly a Homework Tutor. I cannot discuss games or social plans. Let's get back to your studies.";
+            } 
+            else if (lower.includes("hello") || lower.includes("hi")) {
+                reply = "Hello! I am Tutor Tom. I can help with Math, Science, and English. What is your homework today?";
+            }
+            else {
+                reply = "That's interesting. Does this relate to a specific school subject? I work best with clear homework questions.";
+            }
+
+            // Send the AI's reply
+            socket.emit('chat message', { sender: 'AI_Tutor', recipient: msg.sender, text: reply });
+        }, 1000);
     });
 
     socket.on('flag user', (data) => socket.emit('toast', `Flag sent to ${data.targetUser}'s parents.`));
