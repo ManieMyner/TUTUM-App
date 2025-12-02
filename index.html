@@ -1,461 +1,130 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tutum</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+const express = require('express');
+const http = require('http');
+const { Server } = require("socket.io");
+
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server);
+
+app.get('/', (req, res) => {
+  res.sendFile(__dirname + '/index.html');
+});
+
+// --- DATABASE ---
+let children = [
+    {
+        id: "child_default",
+        username: "teen_user", 
+        name: "Teen User",
+        status: "Online",
+        verified: true,
+        curfew: { enabled: true, start: "21:00", end: "06:00" },
+        activityLog: []
+    }
+];
+
+// --- SETTINGS ---
+const bannedWords = ["stupid", "hate", "ugly", "idiot", "kill"];
+
+// --- LOGIC ---
+io.on('connection', (socket) => {
     
-    <style>
-        /* --- 3D ISOMETRIC THEME --- */
-        :root {
-            --glass-border: rgba(255, 255, 255, 0.4);
-            --primary: #4FACFE;
-            --primary-grad: linear-gradient(to right, #4FACFE 0%, #00F2FE 100%);
-            --accent: #6C5CE7;
-            --deep-purple: #432C7A;
-            --text-dark: #2D3436;
-            --text-light: #636E72;
+    socket.on('get children', () => {
+        socket.emit('update children list', children);
+    });
+
+    socket.on('register child', (data) => {
+        if(children.find(c => c.username === data.username)) {
+            socket.emit('error message', "Username taken.");
+            return;
         }
+        const newChild = {
+            id: "child_" + Date.now(),
+            username: data.username,
+            name: data.name,
+            status: "Offline",
+            verified: false,
+            curfew: { enabled: true, start: "21:00", end: "06:00" },
+            activityLog: []
+        };
+        children.push(newChild);
+        io.emit('update children list', children);
+    });
 
-        /* BODY: Center the app, handle background */
-        body { 
-            margin: 0; font-family: 'Fredoka', sans-serif; 
-            background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
-            display: flex; justify-content: center; align-items: center;
-            height: 100vh; /* Fill the screen */
-            overflow: hidden; /* Stop browser scroll bars */
+    socket.on('update settings', (data) => {
+        const child = children.find(c => c.id === data.childId);
+        if (child) {
+            child.curfew = data.curfew;
+            socket.emit('update children list', children);
         }
+    });
 
-        /* MOBILE FRAME: Responsive Height Fix */
-        .mobile-frame { 
-            width: 100%; 
-            max-width: 414px; 
-            /* THE FIX: Use 85% of Viewport Height instead of fixed pixels */
-            height: 85vh; 
-            max-height: 850px;
-            min-height: 600px;
-            
-            position: relative; 
-            display: flex; flex-direction: column; overflow: hidden;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-            border-radius: 35px;
-            border: 6px solid rgba(255,255,255,0.3);
-            background: #F4F7FE;
+    socket.on('child login', (username) => {
+        const child = children.find(c => c.username === username);
+        if (child) {
+            child.status = "Online";
+            io.emit('update children list', children);
+            socket.emit('login success', child);
+        } else {
+            socket.emit('login failed', "Username not found.");
         }
+    });
 
-        /* ON REAL PHONES: Go Full Screen */
-        @media (max-width: 500px) {
-            body { align-items: flex-start; }
-            .mobile-frame { width: 100%; height: 100vh; border: none; border-radius: 0; max-height: none; }
-        }
-
-        /* LOGIN SCREEN */
-        #screen-login {
-            background: linear-gradient(135deg, #6C5CE7 0%, #a29bfe 100%);
-            justify-content: center; align-items: center;
-        }
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            border: 2px solid var(--glass-border); border-radius: 30px; padding: 30px 20px; width: 80%; text-align: center;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.1); animation: float 6s ease-in-out infinite;
-        }
-        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
-
-        h1.logo-text { font-size: 48px; color: white; text-shadow: 0 4px 10px rgba(0,0,0,0.2); margin: 0 0 10px 0; }
-        .slot-input { background: rgba(255,255,255,0.9); border: none; border-radius: 50px; padding: 15px 20px; width: 100%; box-sizing: border-box; margin-bottom: 15px; font-family: 'Fredoka'; font-size: 16px; font-weight: 600; outline: none; }
-        .btn-3d { background: linear-gradient(to bottom, #4FACFE 0%, #00F2FE 100%); border: none; border-bottom: 6px solid #0099AA; border-radius: 50px; padding: 15px; width: 100%; color: white; font-family: 'Fredoka'; font-size: 20px; font-weight: 700; cursor: pointer; transition: all 0.1s; }
-        .btn-3d:active { transform: translateY(4px); border-bottom: 2px solid #0099AA; }
-
-        .role-pill { background: rgba(0,0,0,0.2); border-radius: 50px; display: flex; padding: 5px; margin-bottom: 20px; }
-        .role-opt { flex: 1; padding: 8px; border-radius: 40px; color: rgba(255,255,255,0.7); cursor: pointer; font-weight: 700; }
-        .role-opt.active { background: white; color: var(--deep-purple); }
-
-        /* APP SCREENS */
-        .screen { flex: 1; display: flex; flex-direction: column; background: #F4F7FE; overflow-y: auto; }
-        .hidden { display: none !important; }
-        
-        .top-bar { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; background: white; border-radius: 0 0 30px 30px; box-shadow: 0 5px 20px rgba(0,0,0,0.03); z-index: 10; }
-        .page-title { font-size: 20px; color: var(--deep-purple); font-weight: 700; }
-        .icon-btn { font-size: 18px; color: #4FACFE; background: #E6F0FF; width: 36px; height: 36px; border-radius: 12px; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; }
-
-        .content-area { padding: 20px; padding-bottom: 80px; /* Space for scroll */ }
-        .bubble-card { background: white; padding: 15px; border-radius: 20px; margin-bottom: 15px; display: flex; align-items: center; box-shadow: 0 4px 0 #E0E6F0; cursor: pointer; transition: 0.1s; border: 1px solid #F0F4F8; }
-        .bubble-card:active { transform: translateY(2px); box-shadow: 0 2px 0 #E0E6F0; }
-        
-        .b-avatar { width: 45px; height: 45px; background: #FFD166; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 22px; color: white; margin-right: 15px; }
-        .b-info { flex: 1; }
-        .b-name { font-weight: 700; color: var(--deep-purple); font-size: 16px; }
-        .b-status { font-size: 13px; color: #888; font-weight: 600; }
-
-        .sos-btn { position: absolute; bottom: 25px; right: 20px; width: 65px; height: 65px; background: #FF4757; border-bottom: 5px solid #C41E3A; border-radius: 22px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 900; font-size: 16px; box-shadow: 0 10px 20px rgba(255, 71, 87, 0.3); z-index: 50; cursor: pointer; }
-        .sos-btn:active { transform: translateY(4px); border-bottom: 2px solid #C41E3A; }
-
-        .chat-feed { flex: 1; padding: 20px; overflow-y: scroll; display: flex; flex-direction: column; gap: 15px; }
-        .msg-bubble { max-width: 75%; padding: 12px 16px; border-radius: 20px; font-weight: 600; font-size: 15px; line-height: 1.4; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .msg.me { background: #4FACFE; color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
-        .msg.them { background: white; color: var(--text-dark); align-self: flex-start; border-bottom-left-radius: 4px; }
-        
-        /* SETTINGS STYLES */
-        .setting-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .time-box { background: #F0F4F8; padding: 10px; border-radius: 15px; display: flex; align-items: center; gap: 10px; font-weight: bold; color: var(--text-light); }
-        input[type="time"] { border: none; background: transparent; font-family: 'Fredoka'; font-weight: bold; font-size: 16px; color: var(--deep-purple); }
-    </style>
-</head>
-<body>
-
-<div class="mobile-frame">
-
-    <div id="screen-login" class="screen">
-        <div class="glass-panel">
-            <h1 class="logo-text">Tutum</h1>
-            <p style="color:#FFF; font-size:14px; margin-bottom:30px; font-weight:600; opacity:0.9;">Your Squad, Your Space.</p>
-
-            <div class="role-pill">
-                <div id="role-parent" class="role-opt active" onclick="app.setRole('parent')">Parent</div>
-                <div id="role-child" class="role-opt" onclick="app.setRole('child')">Child</div>
-            </div>
-
-            <div id="form-child" class="hidden">
-                <input id="login-user" class="slot-input" placeholder="Username (e.g. teen_user)">
-                <button class="btn-3d" onclick="app.login()">Play</button>
-            </div>
-
-            <div id="form-parent">
-                <p style="color:white; font-size:13px; opacity:0.8; margin-bottom:15px;">Parent Dashboard</p>
-                <button class="btn-3d" style="background: linear-gradient(to bottom, #6C5CE7, #a29bfe);" onclick="app.login()">Login</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="screen-parent" class="screen hidden">
-        <div class="top-bar">
-            <div class="page-title">Family Base</div>
-            <button class="icon-btn" onclick="app.addChild()"><i class="fas fa-plus"></i></button>
-        </div>
-        <div class="content-area">
-            <div style="background:#E3FCEF; color:#00B894; padding:15px; border-radius:15px; font-weight:700; font-size:14px; margin-bottom:20px; display:flex; align-items:center; gap:10px;">
-                <i class="fas fa-shield-check"></i> ID Verified Parent
-            </div>
-            <h4 style="margin: 0 0 10px 5px; color:#a4b0be; text-transform:uppercase; font-size:12px;">Your Kids</h4>
-            <div id="children-list"></div>
-        </div>
-    </div>
-
-    <div id="screen-child-detail" class="screen hidden">
-        <div class="top-bar">
-            <button class="icon-btn" onclick="app.nav('screen-parent')"><i class="fas fa-chevron-left"></i></button>
-            <div class="page-title" id="detail-title">Child</div>
-            <div style="width:40px;"></div>
-        </div>
-        <div class="content-area">
-            <h4 style="margin: 0 0 10px 5px; color:#a4b0be; text-transform:uppercase; font-size:12px;">Controls</h4>
-            <div class="bubble-card" onclick="app.openSettings()">
-                <div class="b-avatar" style="background:#fdcb6e;"><i class="fas fa-moon"></i></div>
-                <div class="b-info">
-                    <div class="b-name">Curfew</div>
-                    <div class="b-status">Sleep schedules</div>
-                </div>
-                <i class="fas fa-chevron-right chevron"></i>
-            </div>
-            <div class="bubble-card" onclick="app.openParentChat()">
-                <div class="b-avatar" style="background:var(--primary);"><i class="fas fa-comments"></i></div>
-                <div class="b-info">
-                    <div class="b-name">Messages</div>
-                    <div class="b-status">Chat with child</div>
-                </div>
-                <i class="fas fa-chevron-right chevron"></i>
-            </div>
-            <h4 style="margin: 20px 0 10px 5px; color:#a4b0be; text-transform:uppercase; font-size:12px;">Activity</h4>
-            <div id="activity-log"></div>
-        </div>
-    </div>
-
-    <div id="screen-child-home" class="screen hidden">
-        <div class="top-bar">
-            <div class="page-title">My Squad</div>
-            <button class="icon-btn" onclick="app.showQR()"><i class="fas fa-qrcode"></i></button>
-        </div>
-        <div class="content-area">
-            <div class="bubble-card" onclick="app.openChat('ParentUser', 'Mom & Dad')">
-                <div class="b-avatar" style="background:#0984e3;"><i class="fas fa-user-shield"></i></div>
-                <div class="b-info">
-                    <div class="b-name">Mom & Dad</div>
-                    <div class="b-status">Family Base</div>
-                </div>
-            </div>
-            <div class="bubble-card" onclick="app.openChat('Friend', 'Best Friend')">
-                <div class="b-avatar" style="background:#00b894;"><i class="fas fa-user-astronaut"></i></div>
-                <div class="b-info">
-                    <div class="b-name">Best Friend</div>
-                    <div class="b-status">Online</div>
-                </div>
-            </div>
-        </div>
-        <div class="sos-btn" onclick="app.triggerSOS()">SOS</div>
-    </div>
-
-    <div id="screen-chat" class="screen hidden">
-        <div class="top-bar">
-            <button class="icon-btn" onclick="app.back()"><i class="fas fa-chevron-left"></i></button>
-            <div class="page-title" id="chat-title">Chat</div>
-            <div style="width:40px;"></div>
-        </div>
-        <div class="chat-feed" id="chat-feed"></div>
-        <div style="padding:15px; background:white;">
-            <div style="background:#F0F4F8; border-radius:30px; padding:5px; display:flex; align-items:center;">
-                <input id="msg-input" style="flex:1; border:none; background:transparent; padding:10px 15px; font-family:'Fredoka'; font-weight:600; outline:none;" placeholder="Type here...">
-                <button onclick="app.send()" style="width:40px; height:40px; background:#4FACFE; border:none; border-radius:50%; color:white; cursor:pointer; margin-right:5px;"><i class="fas fa-paper-plane"></i></button>
-            </div>
-        </div>
-    </div>
-
-    <div id="screen-settings" class="screen hidden">
-        <div class="top-bar">
-            <button class="icon-btn" onclick="app.nav('screen-child-detail')"><i class="fas fa-times"></i></button>
-            <div class="page-title">Curfew</div>
-            <button class="icon-btn" onclick="app.saveSettings()"><i class="fas fa-check"></i></button>
-        </div>
-        <div class="content-area">
-            <div class="bubble-card" style="cursor:default;">
-                <div class="b-info">
-                    <div class="b-name">Enable Curfew</div>
-                    <div class="b-status">Block friends at night</div>
-                </div>
-                <input type="checkbox" id="curfew-toggle" style="transform: scale(1.5); accent-color: var(--primary);">
-            </div>
-
-            <h4 style="margin: 20px 0 10px 5px; color:#a4b0be; text-transform:uppercase; font-size:12px;">Schedule</h4>
-            
-            <div class="time-box">
-                <span>Start Time</span>
-                <input type="time" id="time-start">
-            </div>
-            
-            <div class="time-box" style="margin-top:10px;">
-                <span>End Time</span>
-                <input type="time" id="time-end">
-            </div>
-        </div>
-    </div>
-
-    <div id="overlay-qr" class="hidden" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(45, 52, 54, 0.9); z-index:100; display:flex; flex-direction:column; align-items:center; justify-content:center;">
-        <div style="background:white; padding:30px; border-radius:30px; text-align:center;">
-            <img id="qr-img" src="" width="180">
-            <h2 id="qr-name">@user</h2>
-            <button class="btn-3d" style="margin-top:20px;" onclick="app.closeOverlays()">Close</button>
-        </div>
-    </div>
-
-    <div id="overlay-sos" class="hidden" style="position:absolute; top:0; left:0; width:100%; height:100%; background:#FF7675; z-index:200; display:flex; flex-direction:column; align-items:center; justify-content:center; color:white; text-align:center;">
-        <i class="fas fa-exclamation-circle" style="font-size:80px; margin-bottom:20px;"></i>
-        <h1>ALERT SENT!</h1>
-        <button class="btn-3d" style="background:white; color:#FF7675; width:60%; margin-top:40px;" onclick="app.closeOverlays()">I'm Safe</button>
-    </div>
-
-</div>
-
-<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-<script>
-    const socket = io();
-    let currentUser = "";
-    let isParent = true;
-    let currentChat = "";
-    let chatHistory = [];
-    let children = [];
-    let selectedChildId = null;
-
-    const app = {
-        setRole: (role) => {
-            isParent = (role === 'parent');
-            document.getElementById('role-parent').className = isParent ? 'role-opt active' : 'role-opt';
-            document.getElementById('role-child').className = !isParent ? 'role-opt active' : 'role-opt';
-            if(isParent) {
-                document.getElementById('form-parent').classList.remove('hidden');
-                document.getElementById('form-child').classList.add('hidden');
-            } else {
-                document.getElementById('form-parent').classList.add('hidden');
-                document.getElementById('form-child').classList.remove('hidden');
-            }
-        },
-
-        login: () => {
-            if(isParent) {
-                currentUser = "ParentUser";
-                app.nav('screen-parent');
-                socket.emit('get children');
-            } else {
-                const user = document.getElementById('login-user').value;
-                if(!user) return alert("Username needed!");
-                socket.emit('child login', user);
-            }
-        },
-
-        nav: (id) => {
-            document.querySelectorAll('.screen').forEach(e => e.classList.add('hidden'));
-            document.getElementById(id).classList.remove('hidden');
-        },
-
-        back: () => {
-             if(isParent && currentChat) {
-                app.nav('screen-child-detail');
-             } else {
-                app.nav(isParent ? 'screen-parent' : 'screen-child-home');
-             }
-        },
-
-        addChild: () => {
-            const name = prompt("Name:");
-            const user = prompt("Username:");
-            if(name && user) socket.emit('register child', { name, username: user });
-        },
-
-        openChildDetail: (id) => {
-            selectedChildId = id;
-            const child = children.find(c => c.id === id);
-            document.getElementById('detail-title').innerText = child.name;
-            app.renderActivity(child);
-            app.nav('screen-child-detail');
-        },
-
-        openParentChat: () => {
-            const child = children.find(c => c.id === selectedChildId);
-            if(child) app.openChat(child.username, child.name);
-        },
-
-        renderActivity: (child) => {
-             const list = document.getElementById('activity-log');
-             list.innerHTML = '';
-             if(child.activityLog.length === 0) list.innerHTML = '<div style="color:#aaa; text-align:center;">No activity</div>';
-             
-             child.activityLog.forEach(log => {
-                const div = document.createElement('div');
-                div.className = 'bubble-card';
-                div.innerHTML = `
-                    <div class="b-avatar" style="${log.type==='alert'?'background:#FF4757':'background:#ccc'}"><i class="fas fa-info"></i></div>
-                    <div class="b-info"><div class="b-name">${log.user}</div><div class="b-status">${log.text}</div></div>
-                `;
-                list.appendChild(div);
-             });
-        },
-
-        openChat: (id, name) => {
-            currentChat = id;
-            document.getElementById('chat-title').innerText = name;
-            const feed = document.getElementById('chat-feed');
-            feed.innerHTML = '';
-            
-            chatHistory.forEach(msg => {
-                if ((msg.sender === currentUser && msg.recipient === currentChat) || 
-                    (msg.sender === currentChat && msg.recipient === currentUser)) {
-                    app.renderMsg(msg);
-                }
+    socket.on('sos signal', (username) => {
+        const child = children.find(c => c.username === username);
+        if(child) {
+            child.status = "🚨 SOS ALERT! 🚨";
+            child.activityLog.unshift({
+                id: "log_" + Date.now(),
+                type: "alert",
+                user: "SYSTEM",
+                text: "Triggered the Panic Button",
+                time: "Just now"
             });
-            app.nav('screen-chat');
-        },
-
-        send: () => {
-            const txt = document.getElementById('msg-input').value;
-            if(txt) {
-                socket.emit('chat message', { sender: currentUser, recipient: currentChat, text: txt });
-                document.getElementById('msg-input').value = '';
-            }
-        },
-
-        renderMsg: (msg) => {
-            const feed = document.getElementById('chat-feed');
-            const div = document.createElement('div');
-            const isMe = msg.sender === currentUser;
-            div.className = `msg-bubble msg ${isMe ? 'me' : 'them'}`;
-            div.innerText = msg.text;
-            feed.appendChild(div);
-            feed.scrollTop = feed.scrollHeight;
-        },
-
-        showQR: () => {
-            document.getElementById('qr-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${currentUser}`;
-            document.getElementById('qr-name').innerText = "@"+currentUser;
-            document.getElementById('overlay-qr').classList.remove('hidden');
-        },
-
-        triggerSOS: () => {
-            document.getElementById('overlay-sos').classList.remove('hidden');
-            socket.emit('sos signal', currentUser);
-        },
-
-        closeOverlays: () => {
-            document.getElementById('overlay-qr').classList.add('hidden');
-            document.getElementById('overlay-sos').classList.add('hidden');
-        },
-
-        // --- SETTINGS (FIXED) ---
-        openSettings: () => {
-            const child = children.find(c => c.id === selectedChildId);
-            if(child) {
-                document.getElementById('curfew-toggle').checked = child.curfew.enabled;
-                document.getElementById('time-start').value = child.curfew.start;
-                document.getElementById('time-end').value = child.curfew.end;
-                app.nav('screen-settings');
-            }
-        },
-        saveSettings: () => {
-            const settings = {
-                enabled: document.getElementById('curfew-toggle').checked,
-                start: document.getElementById('time-start').value,
-                end: document.getElementById('time-end').value
-            };
-            socket.emit('update settings', { childId: selectedChildId, curfew: settings });
-            app.nav('screen-child-detail');
-        }
-    };
-
-    // SOCKETS
-    socket.on('update children list', (data) => {
-        children = data;
-        const list = document.getElementById('children-list');
-        list.innerHTML = '';
-        children.forEach(c => {
-            const div = document.createElement('div');
-            div.className = 'bubble-card';
-            div.onclick = () => app.openChildDetail(c.id);
-            const isSOS = c.status && c.status.includes("SOS");
-            div.innerHTML = `
-                <div class="b-avatar" style="${isSOS ? 'background:#FF4757' : 'background:#a29bfe'}">
-                    <i class="fas ${isSOS ? 'fa-exclamation' : 'fa-user-astronaut'}"></i>
-                </div>
-                <div class="b-info">
-                    <div class="b-name">${c.name}</div>
-                    <div class="b-status" style="${isSOS ? 'color:#FF4757' : ''}">${c.status}</div>
-                </div>
-                <i class="fas fa-chevron-right chevron"></i>
-            `;
-            list.appendChild(div);
-        });
-        if(selectedChildId) {
-             const currentChild = children.find(c => c.id === selectedChildId);
-             if(currentChild) app.renderActivity(currentChild);
+            io.emit('chat message', { 
+                sender: username, 
+                recipient: "ParentUser", 
+                text: "🚨 SOS ALERT TRIGGERED 🚨" 
+            });
+            io.emit('update children list', children);
+            io.emit('toast', `SOS ALERT from ${child.name}!`);
         }
     });
 
+    // --- CHAT LOGIC (UPDATED FOR IMAGES) ---
     socket.on('chat message', (msg) => {
-        chatHistory.push(msg);
-        if(!document.getElementById('screen-chat').classList.contains('hidden')) {
-             if((msg.sender === currentUser && msg.recipient === currentChat) ||
-               (msg.sender === currentChat && msg.recipient === currentUser)) {
-                app.renderMsg(msg);
+        
+        // 1. If it has text, check for bad words
+        if (msg.text) {
+            let isBad = false;
+            for (let word of bannedWords) {
+                if (msg.text.toLowerCase().includes(word)) {
+                    isBad = true;
+                    break;
+                }
+            }
+            if (isBad) {
+                socket.emit('error message', "Message blocked: Language.");
+                return; // Stop here
             }
         }
+
+        // 2. If safe (or just an image), send it
+        io.emit('chat message', msg);
     });
 
-    socket.on('login success', (user) => {
-        currentUser = user.username;
-        app.nav('screen-child-home');
+    socket.on('flag user', (data) => socket.emit('toast', `Flag sent to ${data.targetUser}'s parents.`));
+    
+    socket.on('block user', (data) => {
+        const child = children.find(c => c.id === data.childId);
+        if (child) {
+            child.activityLog = child.activityLog.filter(log => log.id !== data.logId);
+            socket.emit('update children list', children);
+        }
     });
+});
 
-    socket.on('toast', (t) => alert(t));
-    socket.on('login failed', (t) => alert(t));
-
-</script>
-</body>
-</html>
+const PORT = process.env.PORT || 8080;
+server.listen(PORT, () => {
+  console.log(`Tutum running on port ${PORT}`);
+});
