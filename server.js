@@ -23,40 +23,38 @@ let children = [
     }
 ];
 
-// Active Invite Codes (e.g., ["FAM-1234"])
+// Active Invite Codes
 let activeInvites = [];
 
-// --- LOGIC ---
 io.on('connection', (socket) => {
     
-    // 1. GENERATE INVITE (Parent A)
+    socket.on('get children', () => {
+        socket.emit('update children list', children);
+    });
+
+    // 1. INVITE LOGIC
     socket.on('generate invite', () => {
         const code = "FAM-" + Math.floor(1000 + Math.random() * 9000);
         activeInvites.push(code);
         socket.emit('invite code', code);
     });
 
-    // 2. JOIN FAMILY (Parent B)
     socket.on('join family', (code) => {
         if (activeInvites.includes(code)) {
-            // Success! Link them to the existing family data
-            socket.emit('login success', { username: "Co-Parent", role: "parent" });
+            // FIX: Ensure Co-Parent uses the same ID as the main parent for chat to work
+            socket.emit('login success', { username: "ParentUser", role: "parent" });
         } else {
             socket.emit('login failed', "Invalid or expired code.");
         }
     });
 
-    // 3. STANDARD PARENT LOGIN
+    // 2. PARENT LOGIN (FIXED USERNAME)
     socket.on('parent login', () => {
-        // In a real app, check password. Here, just let them in.
-        socket.emit('login success', { username: "Admin Parent", role: "parent" });
+        // FIX: Must match what the child sends to ('ParentUser')
+        socket.emit('login success', { username: "ParentUser", role: "parent" });
     });
 
-    // --- CHILD & DATA LOGIC ---
-    socket.on('get children', () => {
-        socket.emit('update children list', children);
-    });
-
+    // 3. CHILD REGISTRATION
     socket.on('register child', (data) => {
         if(children.find(c => c.username === data.username)) {
             socket.emit('error message', "Username taken.");
@@ -94,6 +92,7 @@ io.on('connection', (socket) => {
         }
     });
 
+    // 4. SOS SIGNAL
     socket.on('sos signal', (username) => {
         const child = children.find(c => c.username === username);
         if(child) {
@@ -105,6 +104,7 @@ io.on('connection', (socket) => {
                 text: "Triggered the Panic Button",
                 time: "Just now"
             });
+            // Send alert to parent chat
             io.emit('chat message', { 
                 sender: username, 
                 recipient: "ParentUser", 
@@ -115,25 +115,31 @@ io.on('connection', (socket) => {
         }
     });
 
+    // 5. CHAT RELAY
     socket.on('chat message', (msg) => {
         io.emit('chat message', msg);
     });
 
-    // AI Tutor
+    // 6. AI TUTOR
     socket.on('tutor message', (msg) => {
         socket.emit('chat message', { sender: msg.sender, recipient: 'AI_Tutor', text: msg.text });
         setTimeout(() => {
             const lower = msg.text.toLowerCase();
             let reply = "Hello! I am Tutor Tom.";
+            
+            // Math Logic
             if (/[0-9]/.test(lower) && /[\+\-\*x\/]/.test(lower)) {
                 try {
                     let cleanMath = lower.replace(/[^0-9\+\-\*\/\.x]/g, '').replace(/x/g, '*');
                     let result = eval(cleanMath); 
                     reply = `The answer is ${result}.`;
-                } catch (e) {}
+                } catch (e) {
+                    reply = "I couldn't calculate that.";
+                }
             } else if (lower.includes("math") || lower.includes("science")) {
                 reply = "I can help with that subject.";
             }
+            
             socket.emit('chat message', { sender: 'AI_Tutor', recipient: msg.sender, text: reply });
         }, 800);
     });
