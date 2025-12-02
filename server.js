@@ -11,6 +11,10 @@ app.get('/', (req, res) => {
 });
 
 // --- DATABASE ---
+let guardians = [
+    { name: "You (Admin)", role: "admin", id: "parent_1" }
+];
+
 let children = [
     {
         id: "child_default",
@@ -18,23 +22,22 @@ let children = [
         name: "Teen User",
         status: "Online",
         verified: true,
-        // NEW: We simulate that the parent has set this child's education level
-        education: { grade: "10", curriculum: "CAPS (South Africa)" },
         curfew: { enabled: true, start: "21:00", end: "06:00" },
+        friends: [], // New: Track friends
         activityLog: []
     }
 ];
 
-// Active Invite Codes
 let activeInvites = [];
 
 io.on('connection', (socket) => {
     
-    socket.on('get children', () => {
-        socket.emit('update children list', children);
+    // --- DATA SYNC ---
+    socket.on('get data', () => {
+        socket.emit('update data', { children, guardians });
     });
 
-    // 1. INVITE LOGIC
+    // --- PARENT MANAGEMENT ---
     socket.on('generate invite', () => {
         const code = "FAM-" + Math.floor(1000 + Math.random() * 9000);
         activeInvites.push(code);
@@ -43,18 +46,25 @@ io.on('connection', (socket) => {
 
     socket.on('join family', (code) => {
         if (activeInvites.includes(code)) {
+            const newGuardian = { name: "Co-Parent", role: "guardian", id: "parent_" + Date.now() };
+            guardians.push(newGuardian);
             socket.emit('login success', { username: "ParentUser", role: "parent" });
+            io.emit('update data', { children, guardians }); // Update everyone
         } else {
-            socket.emit('login failed', "Invalid or expired code.");
+            socket.emit('login failed', "Invalid code.");
         }
     });
 
-    // 2. PARENT LOGIN
+    socket.on('remove guardian', (id) => {
+        guardians = guardians.filter(g => g.id !== id);
+        io.emit('update data', { children, guardians });
+    });
+
     socket.on('parent login', () => {
         socket.emit('login success', { username: "ParentUser", role: "parent" });
     });
 
-    // 3. CHILD REGISTRATION
+    // --- CHILD LOGIC ---
     socket.on('register child', (data) => {
         if(children.find(c => c.username === data.username)) {
             socket.emit('error message', "Username taken.");
@@ -66,34 +76,57 @@ io.on('connection', (socket) => {
             name: data.name,
             status: "Offline",
             verified: false,
-            education: { grade: "10", curriculum: "Standard" }, // Default
             curfew: { enabled: true, start: "21:00", end: "06:00" },
+            friends: [],
             activityLog: []
         };
         children.push(newChild);
-        io.emit('update children list', children);
-    });
-
-    socket.on('update settings', (data) => {
-        const child = children.find(c => c.id === data.childId);
-        if (child) {
-            child.curfew = data.curfew;
-            socket.emit('update children list', children);
-        }
+        io.emit('update data', { children, guardians });
     });
 
     socket.on('child login', (username) => {
         const child = children.find(c => c.username === username);
         if (child) {
             child.status = "Online";
-            io.emit('update children list', children);
+            io.emit('update data', { children, guardians });
             socket.emit('login success', { username: child.username, role: "child" });
         } else {
             socket.emit('login failed', "Username not found.");
         }
     });
 
-    // 4. SOS SIGNAL
+    // NEW: ADD FRIEND
+    socket.on('add friend', (data) => {
+        const child = children.find(c => c.username === data.childUser);
+        if(child) {
+            // Check if already friends
+            if(!child.friends.find(f => f.username === data.friendUser)) {
+                child.friends.push({ name: data.friendUser, username: data.friendUser });
+                
+                // Alert Parent
+                child.activityLog.unshift({
+                    id: "log_" + Date.now(),
+                    type: "alert", // Grey alert (safe)
+                    user: data.friendUser,
+                    text: "Added as a new friend",
+                    time: "Just now"
+                });
+                
+                io.emit('update data', { children, guardians });
+                socket.emit('toast', "Friend Added!");
+            }
+        }
+    });
+
+    // --- CORE FEATURES ---
+    socket.on('update settings', (data) => {
+        const child = children.find(c => c.id === data.childId);
+        if (child) {
+            child.curfew = data.curfew;
+            io.emit('update data', { children, guardians });
+        }
+    });
+
     socket.on('sos signal', (username) => {
         const child = children.find(c => c.username === username);
         if(child) {
@@ -105,61 +138,34 @@ io.on('connection', (socket) => {
                 text: "Triggered the Panic Button",
                 time: "Just now"
             });
-            io.emit('chat message', { 
-                sender: username, 
-                recipient: "ParentUser", 
-                text: "🚨 SOS ALERT TRIGGERED 🚨" 
-            });
-            io.emit('update children list', children);
+            io.emit('chat message', { sender: username, recipient: "ParentUser", text: "🚨 SOS ALERT TRIGGERED 🚨" });
+            io.emit('update data', { children, guardians });
             io.emit('toast', `SOS ALERT from ${child.name}!`);
         }
     });
 
-    // 5. CHAT RELAY
     socket.on('chat message', (msg) => {
         io.emit('chat message', msg);
     });
 
-    // --- 6. AI TUTOR (SYLLABUS AWARE) ---
     socket.on('tutor message', (msg) => {
-        // Echo user message
         socket.emit('chat message', { sender: msg.sender, recipient: 'AI_Tutor', text: msg.text });
-        
         setTimeout(() => {
             const lower = msg.text.toLowerCase();
-            let reply = "";
-
-            // A. MATH (Calculation)
+            let reply = "Hello! I am Tutor Tom.";
             if (/[0-9]/.test(lower) && /[\+\-\*x\/]/.test(lower)) {
                 try {
                     let cleanMath = lower.replace(/[^0-9\+\-\*\/\.x]/g, '').replace(/x/g, '*');
                     let result = eval(cleanMath); 
-                    reply = `Calculated Answer: ${result}. Remember to show your working out!`;
-                } catch (e) { reply = "I couldn't calculate that."; }
+                    reply = `The answer is ${result}.`;
+                } catch (e) {}
+            } else if (lower.includes("math") || lower.includes("science")) {
+                reply = "I can help with that subject.";
+            } else if (lower.includes("movie") || lower.includes("game")) {
+                reply = "I focus only on schoolwork.";
             }
-            // B. HISTORY (Syllabus Check)
-            else if (lower.includes("history") || lower.includes("war") || lower.includes("mandela") || lower.includes("apartheid")) {
-                reply = "Based on the Grade 10 History syllabus, we cover The World around 1600, Expansion and Conquest, and the French Revolution. Which topic are you working on?";
-            }
-            // C. GEOGRAPHY
-            else if (lower.includes("geography") || lower.includes("map") || lower.includes("climate") || lower.includes("water")) {
-                reply = "For Geography (CAPS Curriculum), you should be focusing on Climatology or Geomorphology. I can help with mapwork calculations if you need.";
-            }
-            // D. SCIENCE / BIO
-            else if (lower.includes("science") || lower.includes("bio") || lower.includes("cell") || lower.includes("physics")) {
-                reply = "In Physical Sciences we cover Mechanics and Waves. In Life Sciences we cover the Biosphere and Cells. What is your specific question?";
-            }
-            // E. GUARDRAILS (The "No" List)
-            else if (lower.includes("game") || lower.includes("tiktok") || lower.includes("youtube") || lower.includes("movie")) {
-                reply = "My programming restricts me to Educational Support only. I cannot discuss entertainment. Please return to your homework.";
-            }
-            // F. GREETING
-            else {
-                reply = "Hello! I am Tutor Tom. I am synced with your local school curriculum (Grade 10). Ask me about Math, Science, History, or Geography.";
-            }
-            
             socket.emit('chat message', { sender: 'AI_Tutor', recipient: msg.sender, text: reply });
-        }, 1000);
+        }, 800);
     });
 
     socket.on('verify identity', () => {
