@@ -23,7 +23,6 @@ let children = [
         status: "Online",
         verified: true,
         curfew: { enabled: true, start: "21:00", end: "06:00" },
-        friends: [], // New: Track friends
         activityLog: []
     }
 ];
@@ -32,12 +31,38 @@ let activeInvites = [];
 
 io.on('connection', (socket) => {
     
-    // --- DATA SYNC ---
+    // SYNC DATA
     socket.on('get data', () => {
         socket.emit('update data', { children, guardians });
     });
 
-    // --- PARENT MANAGEMENT ---
+    // 1. REGISTER CHILD
+    socket.on('register child', (data) => {
+        // Check for duplicates
+        if(children.find(c => c.username === data.username)) {
+            socket.emit('error message', "Username already exists!");
+            return;
+        }
+        
+        const newChild = {
+            id: "child_" + Date.now(),
+            username: data.username,
+            name: data.name,
+            status: "Offline",
+            verified: false,
+            curfew: { enabled: true, start: "21:00", end: "06:00" },
+            activityLog: []
+        };
+        children.push(newChild);
+        io.emit('update data', { children, guardians });
+        socket.emit('toast', "Child added successfully!");
+    });
+
+    // 2. PARENT LOGINS & INVITES
+    socket.on('parent login', () => {
+        socket.emit('login success', { username: "ParentUser", role: "parent" });
+    });
+
     socket.on('generate invite', () => {
         const code = "FAM-" + Math.floor(1000 + Math.random() * 9000);
         activeInvites.push(code);
@@ -46,44 +71,15 @@ io.on('connection', (socket) => {
 
     socket.on('join family', (code) => {
         if (activeInvites.includes(code)) {
-            const newGuardian = { name: "Co-Parent", role: "guardian", id: "parent_" + Date.now() };
-            guardians.push(newGuardian);
-            socket.emit('login success', { username: "ParentUser", role: "parent" });
-            io.emit('update data', { children, guardians }); // Update everyone
+            guardians.push({ name: "Co-Parent", role: "guardian", id: "p_"+Date.now() });
+            socket.emit('login success', { username: "ParentUser", role: "parent" }); // Same ID for shared view
+            io.emit('update data', { children, guardians });
         } else {
             socket.emit('login failed', "Invalid code.");
         }
     });
 
-    socket.on('remove guardian', (id) => {
-        guardians = guardians.filter(g => g.id !== id);
-        io.emit('update data', { children, guardians });
-    });
-
-    socket.on('parent login', () => {
-        socket.emit('login success', { username: "ParentUser", role: "parent" });
-    });
-
-    // --- CHILD LOGIC ---
-    socket.on('register child', (data) => {
-        if(children.find(c => c.username === data.username)) {
-            socket.emit('error message', "Username taken.");
-            return;
-        }
-        const newChild = {
-            id: "child_" + Date.now(),
-            username: data.username,
-            name: data.name,
-            status: "Offline",
-            verified: false,
-            curfew: { enabled: true, start: "21:00", end: "06:00" },
-            friends: [],
-            activityLog: []
-        };
-        children.push(newChild);
-        io.emit('update data', { children, guardians });
-    });
-
+    // 3. CHILD LOGIN
     socket.on('child login', (username) => {
         const child = children.find(c => c.username === username);
         if (child) {
@@ -95,38 +91,7 @@ io.on('connection', (socket) => {
         }
     });
 
-    // NEW: ADD FRIEND
-    socket.on('add friend', (data) => {
-        const child = children.find(c => c.username === data.childUser);
-        if(child) {
-            // Check if already friends
-            if(!child.friends.find(f => f.username === data.friendUser)) {
-                child.friends.push({ name: data.friendUser, username: data.friendUser });
-                
-                // Alert Parent
-                child.activityLog.unshift({
-                    id: "log_" + Date.now(),
-                    type: "alert", // Grey alert (safe)
-                    user: data.friendUser,
-                    text: "Added as a new friend",
-                    time: "Just now"
-                });
-                
-                io.emit('update data', { children, guardians });
-                socket.emit('toast', "Friend Added!");
-            }
-        }
-    });
-
-    // --- CORE FEATURES ---
-    socket.on('update settings', (data) => {
-        const child = children.find(c => c.id === data.childId);
-        if (child) {
-            child.curfew = data.curfew;
-            io.emit('update data', { children, guardians });
-        }
-    });
-
+    // 4. SOS & CHAT
     socket.on('sos signal', (username) => {
         const child = children.find(c => c.username === username);
         if(child) {
@@ -161,11 +126,17 @@ io.on('connection', (socket) => {
                 } catch (e) {}
             } else if (lower.includes("math") || lower.includes("science")) {
                 reply = "I can help with that subject.";
-            } else if (lower.includes("movie") || lower.includes("game")) {
-                reply = "I focus only on schoolwork.";
             }
             socket.emit('chat message', { sender: 'AI_Tutor', recipient: msg.sender, text: reply });
         }, 800);
+    });
+
+    socket.on('update settings', (data) => {
+        const child = children.find(c => c.id === data.childId);
+        if(child) {
+            child.curfew = data.curfew;
+            io.emit('update data', { children, guardians });
+        }
     });
 
     socket.on('verify identity', () => {
