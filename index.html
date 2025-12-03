@@ -13,7 +13,6 @@
             --primary: #4FACFE;
             --deep-purple: #432C7A;
             --text-dark: #2D3436;
-            --text-light: #636E72;
             --danger: #FF4757;
         }
 
@@ -104,15 +103,12 @@
         .status-verified { background:#E3FCEF; color:#00B894; border: 1px solid #00B894; cursor: default; }
         .status-box:active { transform: scale(0.98); }
 
-        /* OVERLAYS */
         .overlay { position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:3000; display:flex; flex-direction:column; align-items:center; justify-content:center; }
         .scan-line { width: 100%; height: 4px; background: #00F2FE; position: absolute; top: 20%; animation: scan 2s infinite alternate; box-shadow: 0 0 10px #00F2FE; }
         @keyframes scan { from { top: 10%; } to { top: 90%; } }
         
-        /* EMOJI GRID */
         .emoji-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 15px 0; }
         .emoji-opt { font-size: 24px; padding: 10px; background: #f0f4f8; border-radius: 10px; cursor: pointer; }
-        .emoji-opt:hover { background: #dce6f2; }
     </style>
 </head>
 <body>
@@ -149,8 +145,8 @@
                 </div>
                 <div id="parent-invite" class="hidden">
                     <input id="invite-code" class="slot-input" placeholder="Code (e.g. FAM-1234)">
-                    <input id="invite-name" class="slot-input" placeholder="Your Real Name (e.g. Mom)">
-                    <input id="invite-user" class="slot-input" placeholder="New Username (e.g. mom_1)">
+                    <input id="invite-name" class="slot-input" placeholder="Your Name (e.g. Dad)">
+                    <input id="invite-user" class="slot-input" placeholder="Create Username (e.g. dad_1)">
                     <button id="btn-join" class="btn-3d" style="background: linear-gradient(to bottom, #00b894, #55efc4);" onclick="app.joinFamily()">Join Family</button>
                     <div class="text-link" onclick="app.toggleInviteMode()">Back to Login</div>
                 </div>
@@ -214,8 +210,6 @@
             <div style="text-align:center; margin-bottom:20px;">
                 <div class="b-avatar" style="width:80px; height:80px; font-size:40px; margin:0 auto;" id="profile-avatar-preview">😎</div>
             </div>
-            
-            <h4 style="color:#a4b0be; font-size:12px;">PICK AVATAR</h4>
             <div class="emoji-grid">
                 <div class="emoji-opt" onclick="app.selectAvatar('😎')">😎</div>
                 <div class="emoji-opt" onclick="app.selectAvatar('👑')">👑</div>
@@ -226,8 +220,6 @@
                 <div class="emoji-opt" onclick="app.selectAvatar('🎨')">🎨</div>
                 <div class="emoji-opt" onclick="app.selectAvatar('🎮')">🎮</div>
             </div>
-
-            <h4 style="color:#a4b0be; font-size:12px; margin-top:20px;">DETAILS</h4>
             <input id="profile-name" class="slot-input" style="background:white; border:1px solid #eee;" placeholder="Display Name">
             <input id="profile-bio" class="slot-input" style="background:white; border:1px solid #eee;" placeholder="Bio / Status">
         </div>
@@ -240,6 +232,7 @@
             <div style="width:40px;"></div>
         </div>
         <div class="content-area">
+            <h4 style="margin: 0 0 10px 5px; color:#a4b0be; text-transform:uppercase; font-size:12px;">Controls</h4>
             <div class="bubble-card" onclick="app.openSettings()">
                 <div class="b-avatar" style="background:#fdcb6e;"><i class="fas fa-moon"></i></div>
                 <div class="b-info"><div class="b-name">Curfew</div><div class="b-status">Sleep schedules</div></div>
@@ -323,12 +316,7 @@
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 <script>
     let socket;
-    try {
-        socket = io();
-    } catch(e) {
-        console.error("Connection Error", e);
-        alert("Server connection failed. Please refresh.");
-    }
+    try { socket = io(); } catch(e) { alert("Server connection failed."); }
 
     let currentUser = "";
     let isParent = true;
@@ -368,22 +356,17 @@
         },
 
         login: () => {
-            try {
-                const btn = isParent ? document.getElementById('btn-login-parent') : document.getElementById('btn-login-child');
-                if(btn) { btn.innerText = "Connecting..."; btn.disabled = true; }
+            const btn = isParent ? document.getElementById('btn-login-parent') : document.getElementById('btn-login-child');
+            if(btn) { btn.innerText = "Connecting..."; btn.disabled = true; }
 
-                if(isParent) {
-                    const parentUser = document.getElementById('parent-user').value || "ParentUser";
-                    currentUser = parentUser;
-                    socket.emit('parent login', parentUser); 
-                } else {
-                    const user = document.getElementById('login-user').value;
-                    if(!user) { alert("Please enter username"); app.resetBtn(); return; }
-                    socket.emit('child login', user);
-                }
-            } catch(e) {
-                alert("Login Error: " + e.message);
-                app.resetBtn();
+            if(isParent) {
+                const parentUser = document.getElementById('parent-user').value || "ParentUser";
+                currentUser = parentUser;
+                socket.emit('parent login', parentUser); 
+            } else {
+                const user = document.getElementById('login-user').value;
+                if(!user) { alert("Please enter username"); app.resetBtn(); return; }
+                socket.emit('child login', user);
             }
         },
 
@@ -408,7 +391,6 @@
 
         // --- PROFILE LOGIC ---
         openProfile: () => {
-            // Find current user data
             let user;
             if(!isParent) user = children.find(c => c.username === currentUser);
             else user = guardians.find(g => g.username === currentUser);
@@ -421,12 +403,10 @@
                 app.nav('screen-profile');
             }
         },
-        
         selectAvatar: (av) => {
             selectedAvatar = av;
             document.getElementById('profile-avatar-preview').innerText = av;
         },
-
         saveProfile: () => {
             const name = document.getElementById('profile-name').value;
             const bio = document.getElementById('profile-bio').value;
@@ -442,7 +422,6 @@
         openAddChild: () => {
             document.getElementById('overlay-add-child').classList.remove('hidden');
         },
-        
         submitChild: () => {
             const name = document.getElementById('new-child-name').value;
             const user = document.getElementById('new-child-user').value;
@@ -469,9 +448,7 @@
             document.getElementById('overlay-scan').classList.add('hidden');
         },
 
-        generateInvite: () => {
-            socket.emit('generate invite');
-        },
+        generateInvite: () => socket.emit('generate invite'),
 
         openChildDetail: (id) => {
             selectedChildId = id;
@@ -484,11 +461,8 @@
 
         updateDetailBadge: () => {
             const child = children.find(c => c.id === selectedChildId);
-            if(child && child.unread) {
-                document.getElementById('msg-badge').classList.remove('hidden');
-            } else {
-                document.getElementById('msg-badge').classList.add('hidden');
-            }
+            if(child && child.unread) document.getElementById('msg-badge').classList.remove('hidden');
+            else document.getElementById('msg-badge').classList.add('hidden');
         },
 
         openParentChat: () => {
@@ -533,11 +507,8 @@
         send: () => {
             const txt = document.getElementById('msg-input').value;
             if(txt) {
-                if(currentChat === 'AI_Tutor') {
-                    socket.emit('tutor message', { sender: currentUser, text: txt });
-                } else {
-                    socket.emit('chat message', { sender: currentUser, recipient: currentChat, text: txt });
-                }
+                if(currentChat === 'AI_Tutor') socket.emit('tutor message', { sender: currentUser, text: txt });
+                else socket.emit('chat message', { sender: currentUser, recipient: currentChat, text: txt });
                 document.getElementById('msg-input').value = '';
             }
         },
@@ -611,19 +582,14 @@
                 const div = document.createElement('div');
                 div.className = 'bubble-card';
                 div.onclick = () => app.openChildDetail(c.id);
-                
                 const isSOS = c.status && c.status.includes("SOS");
                 const showRedDot = c.unread ? '<div class="red-dot"></div>' : '';
-
                 div.innerHTML = `
                     <div class="b-avatar" style="${isSOS ? 'background:#FF4757' : 'background:#a29bfe'}">
                         ${showRedDot}
                         <div style="font-size:20px;">${c.avatar || '😎'}</div>
                     </div>
-                    <div class="b-info">
-                        <div class="b-name">${c.name}</div>
-                        <div class="b-status" style="${isSOS ? 'color:#FF4757' : ''}">${c.bio}</div>
-                    </div>
+                    <div class="b-info"><div class="b-name">${c.name}</div><div class="b-status" style="${isSOS ? 'color:#FF4757' : ''}">${c.bio || c.status}</div></div>
                     <i class="fas fa-chevron-right chevron"></i>
                 `;
                 list.appendChild(div);
@@ -632,7 +598,7 @@
 
         renderGuardiansList: () => {
             const list = document.getElementById('guardians-list');
-            if(!list) return; // Only if on child screen
+            if(!list) return;
             list.innerHTML = '';
             guardians.forEach(g => {
                 const div = document.createElement('div');
@@ -642,7 +608,7 @@
                     <div class="b-avatar" style="background:#0984e3; color:white;">
                         <div style="font-size:20px;">${g.avatar || '🛡️'}</div>
                     </div>
-                    <div class="b-info"><div class="b-name">${g.name}</div><div class="b-status">${g.bio}</div></div>
+                    <div class="b-info"><div class="b-name">${g.name}</div><div class="b-status">${g.bio || g.role}</div></div>
                 `;
                 list.appendChild(div);
             });
@@ -661,16 +627,13 @@
         socket.on('update data', (data) => {
             const oldChildren = children;
             children = data.children;
-            guardians = data.guardians; // Sync guardians
-
+            guardians = data.guardians;
             children.forEach(newChild => {
                 const old = oldChildren.find(c => c.id === newChild.id);
                 if(old && old.unread) newChild.unread = true;
             });
-
             app.renderChildrenList();
-            if(!isParent) app.renderGuardiansList(); // Show custom guardians to child
-
+            if(!isParent) app.renderGuardiansList();
             if(selectedChildId) {
                  const currentChild = children.find(c => c.id === selectedChildId);
                  if(currentChild) app.renderActivity(currentChild);
@@ -680,19 +643,15 @@
         socket.on('verification complete', () => {
             parentVerified = true;
             app.updateVerifyUI();
-            alert("Success! Your identity has been verified.");
+            alert("Identity Verified");
         });
 
-        socket.on('invite code', (code) => {
-            alert("INVITE CODE:\n" + code + "\n\nGive this to your co-parent!");
-        });
+        socket.on('invite code', (code) => alert("INVITE CODE:\n" + code));
 
         socket.on('chat message', (msg) => {
             chatHistory.push(msg);
-            
             if (msg.sender !== currentUser && msg.recipient === currentUser) {
                 if(msg.sender !== 'AI_Tutor') app.showBanner("New Message", `From: ${msg.sender}`);
-
                 if (document.getElementById('screen-chat').classList.contains('hidden')) {
                     const child = children.find(c => c.username === msg.sender);
                     if(child) {
@@ -702,7 +661,6 @@
                     }
                 }
             }
-
             if(!document.getElementById('screen-chat').classList.contains('hidden')) {
                  if((msg.sender === currentUser && msg.recipient === currentChat) ||
                    (msg.sender === currentChat && msg.recipient === currentUser)) {
@@ -718,17 +676,13 @@
                 socket.emit('get data');
             } else {
                 app.nav('screen-child-home');
-                socket.emit('get data'); // Get guardian list
+                socket.emit('get data');
             }
             app.resetBtn();
         });
 
         socket.on('toast', (t) => alert(t));
-        
-        socket.on('login failed', (t) => {
-            alert(t);
-            app.resetBtn();
-        });
+        socket.on('login failed', (t) => { alert(t); app.resetBtn(); });
     }
 </script>
 </body>
