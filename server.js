@@ -11,11 +11,10 @@ app.get('/', (req, res) => {
 });
 
 // --- DATABASE ---
-// We now store bio and avatar for everyone
 let guardians = [
     { 
         id: "parent_1", 
-        username: "ParentUser", // The main admin login
+        username: "ParentUser", // DEFAULT ADMIN
         name: "Admin Parent", 
         role: "admin",
         bio: "Head of House",
@@ -42,46 +41,47 @@ let activeInvites = [];
 
 io.on('connection', (socket) => {
     
-    // --- SYNC ---
+    // --- SYNC DATA ---
     socket.on('get data', () => {
         socket.emit('update data', { children, guardians });
     });
 
-    // --- PROFILE MANAGEMENT (NEW) ---
-    socket.on('update profile', (data) => {
-        // Data contains: { username, name, bio, avatar, role }
-        let user;
-        if(data.role === 'child') {
-            user = children.find(c => c.username === data.username);
+    // --- PARENT LOGIN (FIXED) ---
+    socket.on('parent login', (username) => {
+        // Look for this username in the guardians list
+        const user = guardians.find(g => g.username === username);
+        
+        if (user) {
+            socket.emit('login success', { username: user.username, role: "parent" });
         } else {
-            // Find guardian by ID or Username (for simplicity in prototype we track by ID usually, but username here)
-            user = guardians.find(g => g.username === data.username);
-        }
-
-        if(user) {
-            if(data.name) user.name = data.name;
-            if(data.bio) user.bio = data.bio;
-            if(data.avatar) user.avatar = data.avatar;
-            
-            // Broadcast update to everyone so screens refresh
-            io.emit('update data', { children, guardians });
-            socket.emit('toast', "Profile Updated!");
+            // Debug help
+            console.log("Failed Login Attempt:", username);
+            console.log("Existing Guardians:", guardians.map(g => g.username));
+            socket.emit('login failed', "Parent Username not found. (Did you Join Family first?)");
         }
     });
 
-    // --- PARENT LOGIC ---
+    // --- GENERATE INVITE ---
     socket.on('generate invite', () => {
         const code = "FAM-" + Math.floor(1000 + Math.random() * 9000);
         activeInvites.push(code);
         socket.emit('invite code', code);
     });
 
+    // --- JOIN FAMILY (CREATE CO-PARENT) ---
     socket.on('join family', (data) => {
         // data = { code, name, username }
         if (activeInvites.includes(data.code)) {
+            
+            // Check if username exists
+            if(guardians.find(g => g.username === data.username)) {
+                socket.emit('login failed', "Username already taken.");
+                return;
+            }
+
             const newGuardian = { 
                 id: "p_" + Date.now(),
-                username: data.username, // New login ID
+                username: data.username, 
                 name: data.name, 
                 role: "guardian",
                 bio: "Co-Parent",
@@ -93,20 +93,7 @@ io.on('connection', (socket) => {
             socket.emit('login success', { username: newGuardian.username, role: "parent" });
             io.emit('update data', { children, guardians });
         } else {
-            socket.emit('login failed', "Invalid code.");
-        }
-    });
-
-    socket.on('parent login', (username) => {
-        // Check if this username exists in guardians
-        // For the Prototype, "ParentUser" is hardcoded as Admin. 
-        // Any other username must be in the guardians list.
-        const user = guardians.find(g => g.username === username);
-        
-        if (user) {
-            socket.emit('login success', { username: user.username, role: "parent" });
-        } else {
-            socket.emit('login failed', "Parent not found. Use invite code if new.");
+            socket.emit('login failed', "Invalid Invite Code.");
         }
     });
 
@@ -139,7 +126,22 @@ io.on('connection', (socket) => {
             io.emit('update data', { children, guardians });
             socket.emit('login success', { username: child.username, role: "child" });
         } else {
-            socket.emit('login failed', "Username not found.");
+            socket.emit('login failed', "Child Username not found.");
+        }
+    });
+
+    // --- PROFILE UPDATE ---
+    socket.on('update profile', (data) => {
+        let user;
+        if(data.role === 'child') user = children.find(c => c.username === data.username);
+        else user = guardians.find(g => g.username === data.username);
+
+        if(user) {
+            if(data.name) user.name = data.name;
+            if(data.bio) user.bio = data.bio;
+            if(data.avatar) user.avatar = data.avatar;
+            io.emit('update data', { children, guardians });
+            socket.emit('toast', "Profile Updated!");
         }
     });
 
@@ -155,9 +157,9 @@ io.on('connection', (socket) => {
                 text: "Triggered the Panic Button",
                 time: "Just now"
             });
-            // Alert ALL parents
+            // Notify all parents
             guardians.forEach(g => {
-                 io.emit('chat message', { sender: username, recipient: g.username, text: "🚨 SOS ALERT TRIGGERED 🚨" });
+                io.emit('chat message', { sender: username, recipient: g.username, text: "🚨 SOS ALERT TRIGGERED 🚨" });
             });
             io.emit('update data', { children, guardians });
             io.emit('toast', `SOS ALERT from ${child.name}!`);
@@ -184,6 +186,14 @@ io.on('connection', (socket) => {
             } 
             socket.emit('chat message', { sender: 'AI_Tutor', recipient: msg.sender, text: reply });
         }, 800);
+    });
+
+    socket.on('update settings', (data) => {
+        const child = children.find(c => c.id === data.childId);
+        if(child) {
+            child.curfew = data.curfew;
+            io.emit('update data', { children, guardians });
+        }
     });
 
     socket.on('verify identity', () => {
