@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tutum Investor Deck</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { margin: 0; font-family: 'Fredoka', sans-serif; overflow: hidden; background: #1a1a2e; color: white; }
+        
+        /* SLIDE CONTAINER */
+        .slide {
+            height: 100vh; width: 100vw; display: none; 
+            flex-direction: row; align-items: center; justify-content: center;
+            padding: 50px; box-sizing: border-box;
+            background: radial-gradient(circle at top right, #4FACFE 0%, #00F2FE 100%);
+        }
+        .slide.active { display: flex; animation: fadeIn 0.5s; }
+        
+        /* LAYOUTS */
+        .content-left { flex: 1; padding-right: 50px; }
+        .visual-right { flex: 1; display: flex; justify-content: center; align-items: center; }
+        
+        /* TYPOGRAPHY */
+        h1 { font-size: 60px; margin-bottom: 20px; line-height: 1.1; text-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        h2 { font-size: 30px; color: rgba(255,255,255,0.9); margin-bottom: 40px; font-weight: 400; }
+        ul { list-style: none; padding: 0; }
+        li { font-size: 24px; margin-bottom: 20px; display: flex; align-items: flex-start; }
+        li i { margin-right: 15px; color: #fff; margin-top: 5px; }
+        
+        /* MOCKUP FRAME (The Visual Placeholder) */
+        .phone-mockup {
+            width: 300px; height: 600px; 
+            background: rgba(255,255,255,0.1); 
+            border: 8px solid rgba(255,255,255,0.4); 
+            border-radius: 40px; 
+            display: flex; align-items: center; justify-content: center;
+            text-align: center; color: rgba(255,255,255,0.6);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+            backdrop-filter: blur(10px);
+            font-size: 18px; padding: 20px;
+        }
+
+        /* NAVIGATION */
+        .nav-btn {
+            position: absolute; bottom: 30px; padding: 15px 30px; 
+            background: rgba(255,255,255,0.2); border: 2px solid white; 
+            color: white; border-radius: 30px; cursor: pointer; 
+            font-weight: bold; font-family: 'Fredoka'; font-size: 18px;
+            transition: 0.2s;
+        }
+        .nav-btn:hover { background: white; color: #4FACFE; }
+        .prev { left: 30px; }
+        .next { right: 30px; }
+        
+        .slide-counter { position: absolute; bottom: 40px; width: 100%; text-align: center; font-size: 18px; opacity: 0.7; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+    <div class="slide active">
+        <div class="content-left">
+            <h1>Tutum</h1>
+            <h2>Modern Family Safety & Harmony.</h2>
+            <p style="font-size: 24px; opacity: 0.9;">Moving beyond "digital prisons" to a platform kids accept and parents trust.</p>
+        </div>
+        <div class="visual-right">
+            <div class="phone-mockup">
+                [INSERT SCREENSHOT:<br>Login Screen with 3D Background]
+            </div>
+        </div>
+    </div>
+
+    <div class="slide">
+        <div class="content-left">
+            <h1>The Problem</h1>
+            <ul>
+                <li><i class="fas fa-times-circle"></i> Existing apps feel like surveillance tools.</li>
+                <li><i class="fas fa-times-circle"></i> Kids find workarounds or uninstall them.</li>
+                <li><i class="fas fa-times-circle"></i> They offer zero value to the child.</li>
+            </ul>
+            <h1 style="margin-top:50px;">The Solution</h1>
+            <ul>
+                <li><i class="fas fa-check-circle"></i> A gamified, personalized "Squad" interface.</li>
+                <li><i class="fas fa-check-circle"></i> Powerful controls for parents, fun for kids.</li>
+            </ul>
+        </div>
+        <div class="visual-right">
+            <div class="phone-mockup">
+                [INSERT SCREENSHOT:<br>Side-by-side comparison]
+            </div>
+        </div>
+    </div>
+
+    <div class="slide">
+        <div class="content-left">
+            <h1>Effortless Oversight</h1>
+            <ul>
+                <li><i class="fas fa-eye"></i> <strong>At-a-Glance Status:</strong> See all kids instantly.</li>
+                <li><i class="fas fa-users"></i> <strong>Co-Parenting:</strong> Invite spouses via secure codes.</li>
+                <li><i class="fas fa-shield-alt"></i> <strong>Verified:</strong> Identity checks built-in.</li>
+            </ul>
+        </div>
+        <div class="visual-right">
+            <div class="phone-mockup">
+                [INSERT SCREENSHOT:<br>Parent Dashboard with List]
+            </div>
+        </div>
+    </div>
+
+    <div class="slide">
+        <div class="content-left">
+            <h1>An App Kids Keep</h1>
+            <ul>
+                <li><i class="fas fa-user-astronaut"></i> <strong>Ownership:</strong> Custom avatars & bios.</li>
+                <li><i class="fas fa-shapes"></i> <strong>Gamified Design:</strong> 3D bubble UI feels like a game.</li>
+                <li><i class="fas fa-exclamation-circle"></i> <strong>Safety:</strong> Discrete SOS panic button.</li>
+            </ul>
+        </div>
+        <div class="visual-right">
+            <div class="phone-mockup">
+                [INSERT SCREENSHOT:<br>Child Home Screen with Avatar]
+            </div>
+        </div>
+    </div>
+
+    <div class="slide">
+        <div class="content-left">
+            <h1>Safety Meets Education</h1>
+            <h2>"Tutor Tom" Syllabus-Aware AI</h2>
+            <ul>
+                <li><i class="fas fa-graduation-cap"></i> Answers Homework (Math/Science/History).</li>
+                <li><i class="fas fa-ban"></i> <strong>Safe Guardrails:</strong> Refuses to discuss movies or gossip.</li>
+                <li><i class="fas fa-brain"></i> Keeps kids in the app for productive reasons.</li>
+            </ul>
+        </div>
+        <div class="visual-right">
+            <div class="phone-mockup">
+                [INSERT SCREENSHOT:<br>Chat with Tutor Tom]
+            </div>
+        </div>
+    </div>
+
+    <div class="slide">
+        <div class="content-left">
+            <h1>Instant Action</h1>
+            <h2>When it matters most.</h2>
+            <ul>
+                <li><i class="fas fa-bell"></i> <strong>Real-Time Alerts:</strong> Loud visual warnings for guardians.</li>
+                <li><i class="fas fa-map-marked-alt"></i> <strong>Live Map:</strong> Immediate location overlay.</li>
+            </ul>
+        </div>
+        <div class="visual-right">
+            <div class="phone-mockup">
+                [INSERT SCREENSHOT:<br>Parent Screen with Red SOS Map]
+            </div>
+        </div>
+    </div>
+
+    <div class="slide">
+        <div class="content-left">
+            <h1>From Prototype to Product</h1>
+            <div style="background:rgba(255,255,255,0.2); padding:20px; border-radius:15px; margin-bottom:15px;">
+                <strong>Q1: High-Fidelity Prototype (Complete)</strong><br>
+                Live server, Real-time sockets, AI, 3D UI.
+            </div>
+            <div style="background:rgba(255,255,255,0.1); padding:20px; border-radius:15px; margin-bottom:15px;">
+                <strong>Q2: Native Mobile Migration</strong><br>
+                Flutter build for App Store & Play Store.
+            </div>
+            <div style="background:rgba(255,255,255,0.1); padding:20px; border-radius:15px;">
+                <strong>Q3: Backend Scaling</strong><br>
+                Firebase migration & Paid User Acquisition.
+            </div>
+        </div>
+        <div class="visual-right">
+            <h1>Ask: Seed Funding</h1>
+        </div>
+    </div>
+
+    <div class="slide-counter">Slide <span id="current">1</span> / 7</div>
+    <button class="nav-btn prev" onclick="changeSlide(-1)">Previous</button>
+    <button class="nav-btn next" onclick="changeSlide(1)">Next</button>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const counter = document.getElementById('current');
+
+        function changeSlide(n) {
+            slides[currentSlide].classList.remove('active');
+            currentSlide = (currentSlide + n + slides.length) % slides.length;
+            slides[currentSlide].classList.add('active');
+            counter.innerText = currentSlide + 1;
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if(e.key === 'ArrowRight') changeSlide(1);
+            if(e.key === 'ArrowLeft') changeSlide(-1);
+        });
+    </script>
+</body>
+</html>
